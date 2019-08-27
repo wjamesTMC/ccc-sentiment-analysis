@@ -1,0 +1,234 @@
+---
+title: "CCC Sentiment Analysis"
+date: "`r format(Sys.time(), '%d %B, %Y')`" 
+output: "html_document"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, out.width='90%')
+pagebreak <- function() {
+  if(knitr::is_latex_output())
+    return("\\newpage")
+  else
+    return('<div style="page-break-before: always;" />')
+}
+```
+
+### Overview
+
+### Summary
+
+### Other Notes and Recommendations
+
+`r pagebreak()`
+
+```{r File open and setup, include=FALSE}
+#
+# Library setups
+#
+
+# Import libraries
+library(tidyverse)
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(ggthemes)
+library(extrafont)
+library(scales)
+library(reshape2)
+library(stringi)
+library(expss)
+library(grid)
+library(gridExtra)
+library(lattice)
+library(janitor)
+library(rmarkdown)
+library(kableExtra)
+
+#--------------------------------------------------------------------
+#
+# File open, cleanup, and set up for the analysis
+#
+#--------------------------------------------------------------------
+
+#
+# Download and open file
+#
+
+
+# Import and Open the data file / Establish the data set
+
+# data_filename <- readline("What file do you want to work with? [YY MM DD-DD.csv]? ")
+data_filename <- "19 08 05-11.csv"
+dat <- read.csv(data_filename, stringsAsFactors = FALSE)
+
+vocab_filename <- "0_Input_Vocabulary.csv"
+comms          <- read.csv(vocab_filename, stringsAsFactors = FALSE)
+pos_vocab      <- comms %>% filter(Tone == "Positive")
+neg_vocab      <- comms %>% filter(Tone == "Negative")
+neu_vocab      <- comms %>% filter(Tone == "Neutral")
+
+#
+# Clean data file to set vector names
+#
+
+dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
+                               "Products_Topics_CCC__c" = "Topic"))
+              
+# Select the desired columns
+dat <- dat %>% select(Subject, Description, Client, Topic, Type)
+
+# Replace missing values (zeros) with NR and shorten "do not use"
+dat[dat == 0]                    <- "NR"
+dat[dat == ""]                   <- "NR"
+dat[dat == "No"]                 <- "NR"
+dat[dat == "no"]                 <- "NR"
+dat[dat == "No further comment"] <- "NR"
+dat[dat == "none"]               <- "NR"
+dat[dat == "Junk"]               <- "NR"
+dat[dat == "No Answer"]          <- "NR"
+
+Client_list <- unique(dat$Client)
+Topic_list  <- unique(dat$Topic)
+Type_list   <- unique(dat$Topic)
+
+# Verify the number of unique values of the various factors
+sapply(dat, function(x)length(unique(x)))
+
+# Calc the number of comments (remove "NR" from the count)
+num_descs <- length(unique(dat$Description))
+```
+
+### Cumulative View
+
+
+```{r Cumulative Statistics, echo=FALSE, comment=NA}
+
+#--------------------------------------------------------------------
+#
+# Sentiment analysis - Cumulative
+#
+#--------------------------------------------------------------------
+
+#
+# Positive vocabulary elements
+#
+
+# Build dataframe for positives
+pos_df   <- data.frame(Word  = pos_vocab$Term,
+                       Count = 1:nrow(pos_vocab),
+                       Type  = "Pos")
+
+# Loop to identify positive words in the comments field
+pct <- 0
+for(i in 1:nrow(pos_vocab)) {
+  x <- str_detect(dat$Desc, pos_vocab$Term[i])
+  pos_df[i, 2] <- length(x[x == TRUE])
+  pct <- pct + length(x[x == TRUE])
+}
+
+# Remove words with zero counts
+pos_df  <- pos_df %>% filter(Count != 0)
+
+# Sort from high to low
+pos_df <- arrange(pos_df, desc(Count), Word)
+
+# Print out the top 10 words
+pos_df[1:10, ]
+
+#
+# Negative vocabulary elements
+#
+
+# Build dataframe for negatives
+neg_df   <- data.frame(Word  = neg_vocab$Term,
+                       Count = 1:nrow(neg_vocab),
+                       Type  = "Neg")
+
+
+# Loop to identify negative words in the comments field
+nct <- 0
+for(i in 1:nrow(neg_vocab)) {
+  x <- str_detect(dat$Desc, neg_vocab$Term[i])
+  neg_df[i, 2] <- length(x[x == TRUE])
+  nct <- nct + length(x[x == TRUE])
+}
+
+# Remove words with zero counts
+neg_df   <- neg_df %>% filter(Count != 0)
+
+# Sort from high to low
+neg_df <- arrange(neg_df, desc(Count), Word)
+
+# Print out the top 10 words
+neg_df[1:10, ]
+
+#
+# Neutral vocabulary elements
+#
+
+# Build dataframe for negatives
+neu_df   <- data.frame(Word  = neu_vocab$Term,
+                       Count = 1:nrow(neu_vocab),
+                       Type  = "Neu")
+
+
+# Loop to identify neutral words in the comments field
+neu_ct <- 0
+for(i in 1:nrow(neu_vocab)) {
+  x <- str_detect(dat$Desc, neu_vocab$Term[i])
+  neu_df[i, 2] <- length(x[x == TRUE])
+  neu_ct <- neu_ct + length(x[x == TRUE])
+}
+
+# Remove words with zero counts
+neu_df   <- neu_df %>% filter(Count != 0)
+
+# Sort from high to low
+neu_df <- arrange(neu_df, desc(Count), Word)
+
+# Print out the top 10 words
+neu_df[1:10, ]
+
+# Create datafrane and append negatives and neutrals
+cum_count_df <- pos_df
+cum_count_df <- rbind(cum_count_df, neg_df)
+cum_count_df <- rbind(cum_count_df, neu_df)
+
+# Determine overall positive and negative indexes (pos / neg words / comments
+pos_index <- sum(pos_df$Count) / num_descs
+neg_index <- sum(neg_df$Count) / num_descs
+neu_index <- sum(neu_df$Count) / num_descs
+
+# Create a filename and write out the results
+filename <- paste("0_Output_sentiment_analysis",".csv")
+filename <- stri_replace_all_fixed(filename, " ", "")
+write.csv(cum_count_df, file = filename)
+
+cat(" Number of input lines           :", nrow(dat), "\n",
+    "Number of descriptions          :", num_descs, "\n",
+    "Ratio of descriptions to lines  :", num_descs / nrow(dat), "\n", "\n",
+    "Number of positive words        :", pct, "\n",
+    "Positive words to descs ratio   :", pos_index, "\n", "\n",
+    "Number of negative words        :", nct, "\n",
+    "Negative words to descs ratio   :", neg_index, "\n", "\n",
+    "Number of neutral words         :", neu_ct, "\n",
+    "Neutral words to descs ratio    :", neu_index, "\n")
+
+# Display results and statistics
+cat("Vocabulary word counts / occurrences")
+# kable(pos_df) %>%
+#   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+# kable(neg_df) %>%
+#   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+pos_df
+neg_df
+neu_df
+```
+
+**End of Document**
+
