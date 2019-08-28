@@ -76,6 +76,7 @@ dat[dat == "none"]               <- "NR"
 dat[dat == "Junk"]               <- "NR"
 dat[dat == "No Answer"]          <- "NR"
 
+Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
 Topic_list  <- unique(dat$Topic)
 Type_list   <- unique(dat$Topic)
@@ -183,7 +184,7 @@ neg_index <- sum(neg_df$Count) / num_descs
 neu_index <- sum(neu_df$Count) / num_descs
 
 # Create a filename and write out the results
-filename <- paste("0_Output_sentiment_analysis",".csv")
+filename <- paste("0_Output_SA_", data_filename, ".csv")
 filename <- stri_replace_all_fixed(filename, " ", "")
 write.csv(cum_count_df, file = filename)
 
@@ -208,6 +209,30 @@ cat("Vocabulary word counts / occurrences")
 pos_df
 neg_df
 neu_df
+
+#--------------------------------------------------------------------
+#
+# Sentiment analysis - Identify descriptions with high negative rating
+# 
+#--------------------------------------------------------------------
+
+neg_desc_df <- data.frame(Desc_num = 100, Desc_text = 100, Num_neg = 100)
+
+nct <- 0
+j   <- 1
+for(i in 1:nrow(neg_vocab)) {
+     x <- str_detect(dat$Desc, neg_vocab$Term[i])
+     neg_df[i, 2] <- length(x[x == TRUE])
+     if(neg_df[i, 2] >= 2) { 
+          neg_desc_df[j, 1] <- i
+          neg_desc_df[j, 2] <- dat$Desc[i]
+          neg_desc_df[j, 3] <- length(x[x == TRUE])
+          j <- j + 1
+          }
+     nct <- nct + length(x[x == TRUE])
+}
+
+head(neg_desc_df, 5)
 
 #--------------------------------------------------------------------
 #
