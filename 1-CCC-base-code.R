@@ -64,7 +64,7 @@ dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
                                "Products_Topics_CCC__c" = "Topic"))
               
 # Select the desired columns
-dat <- dat %>% select(Subject, Description, Client, Topic, Type)
+dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
 
 # Replace missing values (zeros) with NR and shorten "do not use"
 dat[dat == 0]                    <- "NR"
@@ -216,16 +216,17 @@ neu_df
 # 
 #--------------------------------------------------------------------
 
-as.numeric(neg_limit <- readline("How many negative words? "))
-neg_desc_df <- data.frame(Desc_num = 100, Desc_text = 100, Num_neg = 100)
+# as.numeric(neg_limit <- readline("How many negative words? "))
+neg_limit <- 10
+neg_desc_df <- data.frame(Desc_ID = 100, Desc_text = 100, Num_neg = 100)
 
 nct <- 0
 j   <- 1
 for(i in 1:nrow(neg_vocab)) {
      x <- str_detect(dat$Desc, neg_vocab$Term[i])
      neg_df[i, 2] <- length(x[x == TRUE])
-     if(neg_df[i, 2] >= neg_limit) { 
-          neg_desc_df[j, 1] <- i
+     if(neg_df[i, 2] > neg_limit) { 
+          neg_desc_df[j, 1] <- dat$Id[i]
           neg_desc_df[j, 2] <- dat$Desc[i]
           neg_desc_df[j, 3] <- length(x[x == TRUE])
           j <- j + 1
