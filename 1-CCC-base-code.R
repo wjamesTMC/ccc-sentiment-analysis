@@ -25,6 +25,7 @@ library(extrafont)
 library(scales)
 library(reshape2)
 library(stringi)
+library(stringr)
 library(expss)
 library(grid)
 library(gridExtra)
@@ -74,20 +75,20 @@ dat <- dat %>% filter(Type != "")
 dat <- dat %>% filter(Type != "Out of Office")
 
 # Remove lines with known not relevant strings
-# Ignore this message
-# out of the office
-# This note is to confirm that the message
-# for immediate release
-# Kindle Personal Document Service
-# connect on LinkedIn
-# Please share this with your members
-# Sent from my Samsung device
-# Sent from my iPhone
-# Longyear Museum
-# View this email in your browser
-# dataprotection+unsubscribe@csps.com
-# Test Comment Publication
-# murdered
+dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
+dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
+dat <- dat %>% filter(!str_detect(Description, 'for immediate release'))
+dat <- dat %>% filter(!str_detect(Description, 'Kindle Personal Document Service'))
+dat <- dat %>% filter(!str_detect(Description, 'connect on LinkedIn'))
+dat <- dat %>% filter(!str_detect(Description, ' Please share this with your members'))
+dat <- dat %>% filter(!str_detect(Description, 'Sent from my Samsung device'))
+dat <- dat %>% filter(!str_detect(Description, 'This note is to confirm that the message'))
+dat <- dat %>% filter(!str_detect(Description, 'Sent from my iPhone'))
+dat <- dat %>% filter(!str_detect(Description, 'Longyear Museum'))
+dat <- dat %>% filter(!str_detect(Description, 'View this email in your browser'))
+dat <- dat %>% filter(!str_detect(Description, 'dataprotection+unsubscribe@csps.com'))
+dat <- dat %>% filter(!str_detect(Description, 'Test Comment'))
+dat <- dat %>% filter(!str_detect(Description, 'murdered'))
 
 Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
