@@ -66,15 +66,28 @@ dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
 # Select the desired columns
 dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
 
-# Replace missing values (zeros) with NR and shorten "do not use"
-dat[dat == 0]                    <- "NR"
-dat[dat == ""]                   <- "NR"
-dat[dat == "No"]                 <- "NR"
-dat[dat == "no"]                 <- "NR"
-dat[dat == "No further comment"] <- "NR"
-dat[dat == "none"]               <- "NR"
-dat[dat == "Junk"]               <- "NR"
-dat[dat == "No Answer"]          <- "NR"
+# Remove lines where Type is junk or misdirected or otherwise erroneous
+dat <- dat %>% filter(Type != "Junk")
+dat <- dat %>% filter(Type != "Duplicate")
+dat <- dat %>% filter(Type != "Misdirected")
+dat <- dat %>% filter(Type != "")
+dat <- dat %>% filter(Type != "Out of Office")
+
+# Remove lines with known not relevant strings
+# Ignore this message
+# out of the office
+# This note is to confirm that the message
+# for immediate release
+# Kindle Personal Document Service
+# connect on LinkedIn
+# Please share this with your members
+# Sent from my Samsung device
+# Sent from my iPhone
+# Longyear Museum
+# View this email in your browser
+# dataprotection+unsubscribe@csps.com
+# Test Comment Publication
+# murdered
 
 Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
@@ -105,7 +118,7 @@ pos_df   <- data.frame(Word  = pos_vocab$Term,
 # Loop to identify positive words in the comments field
 pct <- 0
 for(i in 1:nrow(pos_vocab)) {
-  x <- str_detect(dat$Desc, pos_vocab$Term[i])
+  x <- str_detect(dat$Desc, pos_vocab$Term[i])`
   pos_df[i, 2] <- length(x[x == TRUE])
   pct <- pct + length(x[x == TRUE])
 }
@@ -183,12 +196,17 @@ pos_index <- sum(pos_df$Count) / num_descs
 neg_index <- sum(neg_df$Count) / num_descs
 neu_index <- sum(neu_df$Count) / num_descs
 
-# Create a filename and write out the results
-filename <- paste("0_Output_SA_", data_filename, ".csv")
+# Create a filename and write out the list of P-N-N vocabulary detected
+filename <- paste("0_Output_SA_", data_filename)
 filename <- stri_replace_all_fixed(filename, " ", "")
 write.csv(cum_count_df, file = filename)
 
-cat(" Number of input lines          :", nrow(dat), "\n",
+# Save off the cleaned up data file
+filename <- paste("0_Output_DF_", data_filename)
+filename <- stri_replace_all_fixed(filename, " ", "")
+write.csv(dat, file = filename)
+
+cat(" Number of input lines           :", nrow(dat), "\n",
     "Number of descriptions          :", num_descs, "\n",
     "Ratio of descriptions to lines  :", num_descs / nrow(dat), "\n", "\n",
     "Number of positive words        :", pct, "\n",

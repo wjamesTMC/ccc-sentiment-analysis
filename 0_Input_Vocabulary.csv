@@ -1,233 +1,360 @@
-Term,Tone
-addressing the issue,Negative
-again and again,Negative
-apologize,Negative
-appears,Negative
-back and forth,Negative
-backlog,Negative
-bandwidth,Negative
-breach,Negative
-challenge,Negative
-could conduct,Negative
-could have gotten,Negative
-create excessive,Negative
-devote a bit more time,Negative
-devote more time,Negative
-did not know what they were doing,Negative
-didn't,Negative
-didn't update,Negative
-difficulty,Negative
-disconnect,Negative
-docked,Negative
-doesn't,Negative
-drives up,Negative
-ended up,Negative
-endure,Negative
-Enterprise,Negative
-exceed the SLA,Negative
-exceeded SLA,Negative
-exceeding the SLA,Negative
-excessively,Negative
-expected time,Negative
-flawed,Negative
-forgotten,Negative
-glitchy,Negative
-gone down,Negative
-hard time,Negative
-hardship,Negative
-haven't been able to,Negative
-having more,Negative
-impacted,Negative
-implications,Negative
-inconvenienced,Negative
-inconvenient,Negative
-inexperience,Negative
-inferior,Negative
-issues,Negative
-keep you on hold,Negative
-left straddling,Negative
-little vague,Negative
-many days,Negative
-meaningless,Negative
-more helptful than others,Negative
-more palatable,Negative
-need to get better,Negative
-needs some work,Negative
-needs work,Negative
-negatively,Negative
-never call,Negative
-never know,Negative
-never to call,Negative
-no clear plan,Negative
-no more,Negative
-no reasonable explanation,Negative
-not consistently,Negative
-not getting,Negative
-not possible,Negative
-not received,Negative
-not yet,Negative
-odd,Negative
-on hold,Negative
-out of date,Negative
-problematic,Negative
-problems,Negative
-putting off projects,Negative
-really need,Negative
-rushing,Negative
-should not raise,Negative
-should strive,Negative
-slip through the cracks,Negative
-slow,Negative
-sorry about,Negative
-suspect,Negative
-suspects,Negative
-take too long,Negative
-taken months,Negative
-takes many days,Negative
-takes more time,Negative
-takes too long,Negative
-too busy,Negative
-too many days,Negative
-too much,Negative
-unaware,Negative
-unhelpful,Negative
-unnecessarily,Negative
-unresolved,Negative
-upheaval,Negative
-vague,Negative
-wasn't efficient,Negative
-well-intentioned,Negative
-what was going on,Negative
-would have been nice,Negative
-would like to know,Negative
-would not quite say,Negative
-would not say,Negative
-a good example ,Neutral
-answer can be found,Neutral
-appropriately,Neutral
-as stated previously,Neutral
-can be a winning experience,Neutral
-can be addressed,Neutral
-conduct themselves,Neutral
-consistency,Neutral
-could help me,Neutral
-customized,Neutral
-duration times,Neutral
-feedback,Neutral
-forecasting,Neutral
-get up to speed,Neutral
-getting up to speed,Neutral
-historical knowledge,Neutral
-improve everyone's productivity,Neutral
-improve productivity,Neutral
-in-depth understanding,Neutral
-key problems,Neutral
-like to understand,Neutral
-might be helpful,Neutral
-most important metrics,Neutral
-newer,Neutral
-not always,Neutral
-not urgent,Neutral
-number of occasions,Neutral
-out of the box,Neutral
-previouosly,Neutral
-projected time,Neutral
-refining the system,Neutral
-research,Neutral
-resolve,Neutral
-should be paid,Neutral
-should see,Neutral
-simply,Neutral
-special requests,Neutral
-still important,Neutral
-support innovation,Neutral
-uncovered,Neutral
-what have you seen,Neutral
-would benefit by,Neutral
-above and beyond,Positive
-accurate descriptions,Positive
-always patient,Positive
-always ready,Positive
-appreciate,Positive
-appreciated,Positive
-awesome,Positive
-capable,Positive
-cheerfully,Positive
-competent,Positive
-confident,Positive
-confirmation,Positive
-congrats,Positive
-congratulations,Positive
-couldn't do my job without,Positive
-courteous,Positive
-courteousness,Positive
-courtiousness,Positive
-devoted,Positive
-discipline,Positive
-disciplined recordkeeping,Positive
-easy,Positive
-easy to follow,Positive
-effective,Positive
-empathetic,Positive
-excellent,Positive
-excellent attitude,Positive
-exceptional,Positive
-extra mile,Positive
-fantastic,Positive
-faster in responding,Positive
-favorite people,Positive
-follow-through,Positive
-friendly,Positive
-fun to work with,Positive
-generous,Positive
-goes out of their way,Positive
-gracious,Positive
-graciously,Positive
-great,Positive
-greater granularity,Positive
-hard work,Positive
-help,Positive
-highlight,Positive
-improve duration times,Positive
-joy to work with,Positive
-joyful,Positive
-kind,Positive
-knowledgeable,Positive
-love,Positive
-love working with,Positive
-loving,Positive
-many thanks,Positive
-many thanks,Positive
-opportunities,Positive
-outstanding,Positive
-patient,Positive
-perseverance,Positive
-pleasant,Positive
-pleasure,Positive
-priorities,Positive
-professional,Positive
-prompt,Positive
-quick to respond,Positive
-quicker,Positive
-responsive,Positive
-satisfied,Positive
-shining star,Positive
-significant jump,Positive
-skilled,Positive
-solution-oriented,Positive
-speed,Positive
-straightforward,Positive
-super,Positive
-super competent,Positive
-supporting the Cause,Positive
-thank you,Positive
-thanks,Positive
-they find out,Positive
-thorough,Positive
-timely,Positive
-upbeat,Positive
-very good,Positive
-very helpful,Positive
-warm,Positive
-willing,Positive
-,
+Term,Tone,Austin Vote,Dups Check,Special Mark
+! am a hacker,Negative,,,X
+a good example,Neutral,,,
+above and beyond,Positive,,,
+account at a glance,Neutral,,,
+accurate descriptions,Positive,,,
+addressing the issue,Negative,,,
+again and again,Negative,,,
+allows me to download,Neutral,,,
+always listen,Positive,,,
+always patient,Positive,,,
+always ready,Positive,,,
+answer can be found,Neutral,,,
+apologize,Negative,,,
+appears,Negative,,,
+appreciate,Positive,,,
+appreciated,Positive,,,
+appropriately,Neutral,,,
+as stated previously,Neutral,,,
+awesome,Positive,,,
+back and forth,Negative,,,
+backlog,Negative,,,
+bandwidth,Negative,,,
+billings,Neutral,,,
+blocked,Negative,,,
+breach,Negative,,,
+can be a winning experience,Neutral,,,
+can be addressed,Neutral,,,
+can you send,Neutral,,,
+cannot afford,Negative,,,
+capable,Positive,,,
+challenge,Negative,,,
+check,Neutral,,,
+cheerfully,Positive,,,
+Christian Science Daily Lift,Neutral,,,
+Christian Science Sentinel,Neutral,,,
+Committee on Publication,Neutral,,,
+competent,Positive,,,
+conduct themselves,Neutral,,,
+confident,Positive,,,
+confirmation,Positive,,,
+confirming,Neutral,,,
+confusion,Negative,,,
+congrats,Positive,,,
+congratulations,Positive,,,
+consistency,Neutral,,,
+contacting,Neutral,,,
+could conduct,Negative,,,
+could have gotten,Negative,,,
+could help me,Neutral,,,
+couldn't do my job without,Positive,,,
+courteous,Positive,,,
+courteousness,Positive,,,
+courtiousness,Positive,,,
+create excessive,Negative,,,
+credit card has just been charged,Negative,,,
+credit card information,Neutral,,,
+customized,Neutral,,,
+daily thought,Neutral,,,
+dailylift,Neutral,,,
+devote a bit more time,Negative,,,
+devote more time,Negative,,,
+devoted,Positive,,,
+did not know what they were doing,Negative,,,
+didn't,Negative,,,
+didn't update,Negative,,,
+difficulty,Negative,,,
+discipline,Positive,,,
+disciplined recordkeeping,Positive,,,
+disconnect,Negative,,,
+docked,Negative,,,
+does not require,Neutral,,,
+doesn't,Negative,,,
+doesn't open,Negative,,,
+doing a search,Neutral,,,
+drives up,Negative,,,
+duration times,Neutral,,,
+easy,Positive,,,
+easy to follow,Positive,,,
+effective,Positive,,,
+empathetic,Positive,,,
+ended up,Negative,,,
+endure,Negative,,,
+Enterprise,Negative,,,
+error message,Negative,,,
+exceed the SLA,Negative,,,
+exceeded SLA,Negative,,,
+exceeding the SLA,Negative,,,
+excellent,Positive,,,
+excellent attitude,Positive,,,
+exceptional,Positive,,,
+excessively,Negative,,,
+expected time,Negative,,,
+extra mile,Positive,,,
+fantastic,Positive,,,
+faster in responding,Positive,,,
+favorite people,Positive,,,
+feedback,Neutral,,,
+flawed,Negative,,,
+follow-through,Positive,,,
+forecasting,Neutral,,,
+forgotten,Negative,,,
+friendly,Positive,,,
+fun to work with,Positive,,,
+generous,Positive,,,
+get up to speed,Neutral,,,
+getting up to speed,Neutral,,,
+glitchy,Negative,,,
+goes out of their way,Positive,,,
+gone down,Negative,,,
+gracious,Positive,,,
+graciously,Positive,,,
+great,Positive,,,
+greater granularity,Positive,,,
+had to discontinue,Negative,,,
+hard time,Negative,,,
+hard work,Positive,,,
+hardship,Negative,,,
+have been waiting,Negative,,,
+have not received,Negative,,,
+have yet to receive,Negative,,,
+haven't been able to,Negative,,,
+having more,Negative,,,
+help,Positive,,,
+highlight,Positive,,,
+historical knowledge,Neutral,,,
+hoping,Negative,,,
+hurried,Negative,,,
+I have called,Neutral,,,
+I've written,Neutral,,,
+impacted,Negative,,,
+implications,Negative,,,
+improve duration times,Positive,,,
+improve everyone's productivity,Neutral,,,
+improve productivity,Neutral,,,
+in the way of,Negative,,,
+in-depth understanding,Neutral,,,
+inconvenienced,Negative,,,
+inconvenient,Negative,,,
+inexperience,Negative,,,
+inferior,Negative,,,
+inquiry,Neutral,,,
+investigated,Neutral,,,
+invoice amount,Neutral,,,
+irrelevant,Negative,,,
+irritating,Negative,,,
+issues,Negative,,,
+joy to work with,Positive,,,
+joyful,Positive,,,
+JSH-Online,Positive,,,
+junk mail,Negative,,,
+keep you on hold,Negative,,,
+key problems,Neutral,,,
+kind,Positive,,,
+knowledgeable,Positive,,,
+left straddling,Negative,,,
+like to subscribe to,Neutral,,,
+like to understand,Neutral,,,
+little vague,Negative,,,
+look forward to,Neutral,,,
+love,Positive,,,
+love The Monitor,Positive,,,
+love working with,Positive,,,
+loving,Positive,,,
+many days,Negative,,,
+many thanks,Positive,,,
+meaningless,Negative,,,
+message needs to disappear,Negative,,,
+might be helpful,Neutral,,,
+missed opportunity,Negative,,,
+more helptful than others,Negative,,,
+more palatable,Negative,,,
+most important metrics,Neutral,,,
+need better wording,Negative,,,
+need to get better,Negative,,,
+need to send,Neutral,,,
+needs some work,Negative,,,
+needs work,Negative,,,
+negatively,Negative,,,
+never call,Negative,,,
+never know,Negative,,,
+never to call,Negative,,,
+newer,Neutral,,,
+no answer,Negative,,,
+no clear plan,Negative,,,
+no more,Negative,,,
+no reasonable explanation,Negative,,,
+not always,Neutral,,,
+not available,Negative,,,
+not consistently,Negative,,,
+not getting,Negative,,,
+not helpful,Negative,,,
+not operating,Negative,,,
+not possible,Negative,,,
+not received,Negative,,,
+not urgent,Neutral,,,
+not yet,Negative,,,
+nothing came up,Negative,,,
+noticed a debit,Negative,,,
+number of occasions,Neutral,,,
+odd,Negative,,,
+offer assistance,Neutral,,,
+on hold,Negative,,,
+opportunities,Positive,,,
+out of date,Negative,,,
+out of the box,Neutral,,,
+outstanding,Positive,,,
+patient,Positive,,,
+perseverance,Positive,,,
+pleasant,Positive,,,
+pleasure,Positive,,,
+previouosly,Neutral,,,
+priorities,Positive,,,
+problematic,Negative,,,
+problems,Negative,,,
+professional,Positive,,,
+projected time,Neutral,,,
+prompt,Positive,,,
+putting off projects,Negative,,,
+quick to respond,Positive,,,
+quicker,Positive,,,
+really appreciate,Positive,,,
+really need,Negative,,,
+refining the system,Neutral,,,
+requesting to know,Neutral,,,
+research,Neutral,,,
+researching,Neutral,,,
+resolve,Neutral,,,
+response,Neutral,,,
+responsive,Positive,,,
+rushing,Negative,,,
+satisfied,Positive,,,
+security,Neutral,,,
+send me an email,Neutral,,,
+shining star,Positive,,,
+should be paid,Negative,,,
+should not be,Negative,,,
+should not raise,Negative,,,
+should see,Neutral,,,
+should strive,Negative,,,
+significant jump,Positive,,,
+simply,Neutral,,,
+skilled,Positive,,,
+slip through the cracks,Negative,,,
+slow,Negative,,,
+solution-oriented,Positive,,,
+solve this,Negative,,,
+sorry about,Negative,,,
+special requests,Neutral,,,
+speed,Positive,,,
+still have not received,Negative,,,
+still important,Neutral,,,
+straightforward,Positive,,,
+subscribers,Neutral,,,
+super,Positive,,,
+super competent,Positive,,,
+support innovation,Neutral,,,
+supporting the Cause,Positive,,,
+surprised,Negative,,,
+suspect,Negative,,,
+suspects,Negative,,,
+take too long,Negative,,,
+taken months,Negative,,,
+takes many days,Negative,,,
+takes more time,Negative,,,
+takes too long,Negative,,,
+thank you,Positive,,,
+thanks,Positive,,,
+they find out,Positive,,,
+thorough,Positive,,,
+timely,Positive,,,
+too busy,Negative,,,
+too many days,Negative,,,
+too much,Negative,,,
+unaware,Negative,,,
+uncovered,Neutral,,,
+unhelpful,Negative,,,
+unnecessarily,Negative,,,
+unresolved,Negative,,,
+upbeat,Positive,,,
+upheaval,Negative,,,
+used to come,Negative,,,
+vague,Negative,,,
+very good,Positive,,,
+very helpful,Positive,,,
+very time consuming,Negative,,,
+wanted to circle back,Neutral,,,
+wants to change,Neutral,,,
+warm,Positive,,,
+was a subscriber,Neutral,,,
+wasn't efficient,Negative,,,
+well-intentioned,Negative,,,
+what have you seen,Neutral,,,
+what was going on,Negative,,,
+willing,Positive,,,
+would benefit by,Neutral,,,
+would get back to,Neutral,,,
+would have access,Neutral,,,
+would have been nice,Negative,,,
+would like to add,Neutral,,,
+would like to confirm,Neutral,,,
+would like to know,Negative,,,
+would not quite say,Negative,,,
+would not say,Negative,,,
+wrong spelling,Negative,,,
+,,,,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
+,,,Dup,
