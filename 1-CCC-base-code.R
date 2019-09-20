@@ -33,6 +33,7 @@ library(lattice)
 library(janitor)
 library(rmarkdown)
 library(kableExtra)
+library(googlesheets)
 
 #--------------------------------------------------------------------
 #
@@ -119,7 +120,7 @@ pos_df   <- data.frame(Word  = pos_vocab$Term,
 # Loop to identify positive words in the comments field
 pct <- 0
 for(i in 1:nrow(pos_vocab)) {
-  x <- str_detect(dat$Desc, pos_vocab$Term[i])`
+  x <- str_detect(dat$Desc, pos_vocab$Term[i])
   pos_df[i, 2] <- length(x[x == TRUE])
   pct <- pct + length(x[x == TRUE])
 }
@@ -237,7 +238,7 @@ neu_df
 
 # as.numeric(neg_limit <- readline("How many negative words? "))
 neg_limit <- 10
-neg_desc_df <- data.frame(Desc_ID = 100, Desc_text = 100, Num_neg = 100)
+neg_desc_df <- data.frame(Desc_ID = num_descs, Desc_text = num_descs, Num_neg = num_descs)
 
 nct <- 0
 j   <- 1
