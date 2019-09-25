@@ -7,11 +7,11 @@
 #
 ##############################################################################
 
-#--------------------------------------------------------------------
-#
+#-----------------------------------------------------------------------------
 #
 # Library setups
 #
+#-----------------------------------------------------------------------------
 
 # Import libraries
 library(tidyverse)
@@ -74,6 +74,8 @@ dat <- dat %>% filter(Type != "Duplicate")
 dat <- dat %>% filter(Type != "Misdirected")
 dat <- dat %>% filter(Type != "")
 dat <- dat %>% filter(Type != "Out of Office")
+dat <- dat %>% filter(Type != "No Answer")
+dat <- dat %>% filter(Description != "")
 
 # Remove lines with known not relevant strings
 dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
@@ -97,10 +99,16 @@ Topic_list  <- unique(dat$Topic)
 Type_list   <- unique(dat$Topic)
 
 # Verify the number of unique values of the various factors
-sapply(dat, function(x)length(unique(x)))
+cat("Summary of input file after cleanup")
+cat("Unique IDs:          ", sapply(dat, function(x)length(unique(x)))[1])
+cat("Unique Subjects:     ", sapply(dat, function(x)length(unique(x)))[2])
+cat("Unique Descriptions: ", sapply(dat, function(x)length(unique(x)))[3])
+cat("Unique Clients:      ", sapply(dat, function(x)length(unique(x)))[4])
+cat("Unique Topics:       ", sapply(dat, function(x)length(unique(x)))[5])
+cat("Unique Categories:   ", sapply(dat, function(x)length(unique(x)))[6])
 
 # Calc the number of comments (remove "NR" from the count)
-num_descs <- length(unique(dat$Description))
+num_descs <- sapply(dat, function(x)length(unique(x)))[3]
 
 #--------------------------------------------------------------------
 #
@@ -165,7 +173,7 @@ neg_df[1:10, ]
 # Neutral vocabulary elements
 #
 
-# Build dataframe for negatives
+# Build dataframe for neutral words
 neu_df   <- data.frame(Word  = neu_vocab$Term,
                        Count = 1:nrow(neu_vocab),
                        Type  = "Neu")
@@ -188,7 +196,7 @@ neu_df <- arrange(neu_df, desc(Count), Word)
 # Print out the top 10 words
 neu_df[1:10, ]
 
-# Create datafrane and append negatives and neutrals
+# Create dataframe and append negatives and neutrals
 cum_count_df <- pos_df
 cum_count_df <- rbind(cum_count_df, neg_df)
 cum_count_df <- rbind(cum_count_df, neu_df)
@@ -236,24 +244,51 @@ neu_df
 # 
 #--------------------------------------------------------------------
 
-# as.numeric(neg_limit <- readline("How many negative words? "))
-neg_limit <- 10
-neg_desc_df <- data.frame(Desc_ID = num_descs, Desc_text = num_descs, Num_neg = num_descs)
+# Set threshold for negative words
+neg_limit <- 2
 
-nct <- 0
-j   <- 1
-for(i in 1:nrow(neg_vocab)) {
-     x <- str_detect(dat$Desc, neg_vocab$Term[i])
-     neg_df[i, 2] <- length(x[x == TRUE])
-     if(neg_df[i, 2] > neg_limit) { 
-          neg_desc_df[j, 1] <- dat$Id[i]
-          neg_desc_df[j, 2] <- dat$Desc[i]
-          neg_desc_df[j, 3] <- length(x[x == TRUE])
-          j <- j + 1
+# What we want to do here is look through the cut-down data file, examine each
+# description, count the number of negative words, and save off that particular
+# entry so they can be written to a file for management to examine
+
+# First build a data frame to hold the identified entries. Set the size to 
+# equal the number of descriptions and later clip off unused rows
+neg_desc_df <- data.frame(Desc_ID = num_descs, Desc_text = num_descs, Neg_words = num_descs)
+
+# Loop to test each negative word against each description
+neg_word_count <- 0
+df_counter     <- 1
+
+for(i in 1:num_descs) {
+     
+     # This line removeS punctuation in the description to leave just text
+     dat$Desc[i] <- gsub("[[:punct:]]", "", dat$Desc[i])
+     
+     for(j in 1:nrow(neg_vocab)) {
+          
+          # Look for instances where a negative word is found
+          x <- str_detect(dat$Desc[i], neg_vocab$Term[j])
+          
+          # if we find an instance, count it
+          if(x == TRUE) {
+               neg_word_count = neg_word_count + 1
           }
-     nct <- nct + length(x[x == TRUE])
+     }
+     if(neg_word_count > neg_limit) {
+          neg_desc_df[df_counter, 1] <- dat$Id[i]
+          neg_desc_df[df_counter, 2] <- dat$Desc[i]
+          neg_desc_df[df_counter, 3] <- neg_word_count
+          df_counter <- df_counter + 1
+     }
+     # Reset the neg word counter to 0
+     neg_word_count <- 0
 }
 
+# Print out results
+for(i in 1:nrow(neg_desc_df)) {
+     cat("Number ", i, "of", nrow(neg_desc_df), "- ID is: ", neg_desc_df[i,1], " ", "Negative words: ", neg_desc_df[i,3], "\n", "\n")
+     cat(substr(neg_desc_df[i,2], start = 1, stop = 500), "\n", "\n")
+}
 head(neg_desc_df, 5)
 
 #--------------------------------------------------------------------

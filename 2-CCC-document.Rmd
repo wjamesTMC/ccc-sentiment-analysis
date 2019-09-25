@@ -5,7 +5,7 @@ output: "html_document"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, out.width='90%')
+knitr::opts_chunk$set(echo = FALSE, out.width='90%', comment=NA)
 pagebreak <- function() {
   if(knitr::is_latex_output())
     return("\\newpage")
@@ -14,19 +14,7 @@ pagebreak <- function() {
 }
 ```
 
-### Overview
-
-### Summary
-
-### Other Notes and Recommendations
-
-`r pagebreak()`
-
 ```{r File open and setup, include=FALSE}
-#
-# Library setups
-#
-
 # Import libraries
 library(tidyverse)
 library(tidyr)
@@ -39,6 +27,7 @@ library(extrafont)
 library(scales)
 library(reshape2)
 library(stringi)
+library(stringr)
 library(expss)
 library(grid)
 library(gridExtra)
@@ -46,6 +35,7 @@ library(lattice)
 library(janitor)
 library(rmarkdown)
 library(kableExtra)
+library(googlesheets)
 
 #--------------------------------------------------------------------
 #
@@ -62,6 +52,7 @@ library(kableExtra)
 
 # data_filename <- readline("What file do you want to work with? [YY MM DD-DD.csv]? ")
 data_filename <- "19 08 05-11.csv"
+stats_period   <- substr(data_filename, start = 1, stop = 11)
 dat <- read.csv(data_filename, stringsAsFactors = FALSE)
 
 vocab_filename <- "0_Input_Vocabulary.csv"
@@ -78,33 +69,119 @@ dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
                                "Products_Topics_CCC__c" = "Topic"))
               
 # Select the desired columns
-dat <- dat %>% select(Subject, Description, Client, Topic, Type)
+dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
 
-# Replace missing values (zeros) with NR and shorten "do not use"
-dat[dat == 0]                    <- "NR"
-dat[dat == ""]                   <- "NR"
-dat[dat == "No"]                 <- "NR"
-dat[dat == "no"]                 <- "NR"
-dat[dat == "No further comment"] <- "NR"
-dat[dat == "none"]               <- "NR"
-dat[dat == "Junk"]               <- "NR"
-dat[dat == "No Answer"]          <- "NR"
+# Remove lines where Type is junk or misdirected or otherwise erroneous
+dat <- dat %>% filter(Type != "Junk")
+dat <- dat %>% filter(Type != "Duplicate")
+dat <- dat %>% filter(Type != "Misdirected")
+dat <- dat %>% filter(Type != "")
+dat <- dat %>% filter(Type != "Out of Office")
+dat <- dat %>% filter(Type != "No Answer")
+dat <- dat %>% filter(Description != "")
 
+# Remove lines with known not relevant strings
+dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
+dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
+dat <- dat %>% filter(!str_detect(Description, 'for immediate release'))
+dat <- dat %>% filter(!str_detect(Description, 'Kindle Personal Document Service'))
+dat <- dat %>% filter(!str_detect(Description, 'connect on LinkedIn'))
+dat <- dat %>% filter(!str_detect(Description, ' Please share this with your members'))
+dat <- dat %>% filter(!str_detect(Description, 'Sent from my Samsung device'))
+dat <- dat %>% filter(!str_detect(Description, 'This note is to confirm that the message'))
+dat <- dat %>% filter(!str_detect(Description, 'Sent from my iPhone'))
+dat <- dat %>% filter(!str_detect(Description, 'Longyear Museum'))
+dat <- dat %>% filter(!str_detect(Description, 'View this email in your browser'))
+dat <- dat %>% filter(!str_detect(Description, 'dataprotection+unsubscribe@csps.com'))
+dat <- dat %>% filter(!str_detect(Description, 'Test Comment'))
+dat <- dat %>% filter(!str_detect(Description, 'murdered'))
+
+Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
 Topic_list  <- unique(dat$Topic)
 Type_list   <- unique(dat$Topic)
 
-# Verify the number of unique values of the various factors
-sapply(dat, function(x)length(unique(x)))
-
 # Calc the number of comments (remove "NR" from the count)
-num_descs <- length(unique(dat$Description))
+num_descs <- sapply(dat, function(x)length(unique(x)))[3]
 ```
 
-### Cumulative View
+This report covers statistics for the period of `r stats_period`
 
+**Summary Statistics After File Reduction**
 
-```{r Cumulative Statistics, echo=FALSE, comment=NA}
+The statistics below arre net of entries labeled "junk", "no answer" and similar categorizations appropriate for removing them from the analysis.
+
+```{r sapply() summary, echo=FALSE}
+# Verify the number of unique values of the various factors
+cat("Unique IDs:          ", sapply(dat, function(x)length(unique(x)))[1])
+cat("Unique Subjects:     ", sapply(dat, function(x)length(unique(x)))[2])
+cat("Unique Descriptions: ", sapply(dat, function(x)length(unique(x)))[3])
+cat("Unique Clients:      ", sapply(dat, function(x)length(unique(x)))[4])
+cat("Unique Topics:       ", sapply(dat, function(x)length(unique(x)))[5])
+cat("Unique Categories:   ", sapply(dat, function(x)length(unique(x)))[6])
+```
+
+**Section 1 - Entry Descriptions with More than Two Negative Words**
+ 
+```{r Particularly negative entries, echo=FALSE, comment=NA}
+#--------------------------------------------------------------------
+#
+# Sentiment analysis - Identify descriptions with high negative rating
+# 
+#--------------------------------------------------------------------
+
+# Set threshold for negative words
+neg_limit <- 2
+
+# What we want to do here is look through the cut-down data file, examine each
+# description, count the number of negative words, and save off that particular
+# entry so they can be written to a file for management to examine
+
+# First build a data frame to hold the identified entries. Set the size to 
+# equal the number of descriptions and later clip off unused rows
+neg_desc_df <- data.frame(Desc_ID = num_descs, Desc_text = num_descs, Neg_words = num_descs)
+
+# Loop to test each negative word against each description
+neg_word_count <- 0
+df_counter     <- 1
+
+for(i in 1:num_descs) {
+     
+     # This line removeS punctuation in the description to leave just text
+     dat$Desc[i] <- gsub("[[:punct:]]", "", dat$Desc[i])
+     
+     for(j in 1:nrow(neg_vocab)) {
+          
+          # Look for instances where a negative word is found
+          x <- str_detect(dat$Desc[i], neg_vocab$Term[j])
+          
+          # if we find an instance, count it
+          if(x == TRUE) {
+               neg_word_count = neg_word_count + 1
+          }
+     }
+     if(neg_word_count > neg_limit) {
+          neg_desc_df[df_counter, 1] <- dat$Id[i]
+          neg_desc_df[df_counter, 2] <- dat$Desc[i]
+          neg_desc_df[df_counter, 3] <- neg_word_count
+          df_counter <- df_counter + 1
+     }
+     # Reset the neg word counter to 0
+     neg_word_count <- 0
+}
+
+# Print out results
+for(i in 1:nrow(neg_desc_df)) {
+     cat("Number ", i, "of", nrow(neg_desc_df), "- ID:", neg_desc_df[i,1], " ", "Negative words:", neg_desc_df[i,3], "\n", "\n")
+     cat(substr(neg_desc_df[i,2], start = 1, stop = 500), "\n", "\n")
+}
+```
+
+**Section 2: Word Occurrence Summaries (Top 10's)**
+
+**1 - Positive Words**
+
+```{r Positive Word Summary, echo=FALSE, comment=NA}
 
 #--------------------------------------------------------------------
 #
@@ -135,9 +212,14 @@ pos_df  <- pos_df %>% filter(Count != 0)
 # Sort from high to low
 pos_df <- arrange(pos_df, desc(Count), Word)
 
-# Print out the top 10 words
-pos_df[1:10, ]
+kable(pos_df[1:10, ]) %>%
+   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
+```
+
+**2 - Negative Words**
+
+```{r Negative Word Summar, echo=FALSE}
 #
 # Negative vocabulary elements
 #
@@ -163,13 +245,18 @@ neg_df   <- neg_df %>% filter(Count != 0)
 neg_df <- arrange(neg_df, desc(Count), Word)
 
 # Print out the top 10 words
-neg_df[1:10, ]
+kable(neg_df[1:10, ]) %>%
+   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
 
+**3 - Neutral Words**
+
+```{r Neutral Words Summary, echo=FALSE}
 #
 # Neutral vocabulary elements
 #
 
-# Build dataframe for negatives
+# Build dataframe for neutral words
 neu_df   <- data.frame(Word  = neu_vocab$Term,
                        Count = 1:nrow(neu_vocab),
                        Type  = "Neu")
@@ -190,7 +277,13 @@ neu_df   <- neu_df %>% filter(Count != 0)
 neu_df <- arrange(neu_df, desc(Count), Word)
 
 # Print out the top 10 words
-neu_df[1:10, ]
+kable(neu_df[1:10, ]) %>%
+   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+**Overall Summary**
+
+```{r Summary Section, echo=FALSE, comment=NA}
 
 # Create datafrane and append negatives and neutrals
 cum_count_df <- pos_df
@@ -217,18 +310,34 @@ cat(" Number of input lines           :", nrow(dat), "\n",
     "Number of neutral words         :", neu_ct, "\n",
     "Neutral words to descs ratio    :", neu_index, "\n")
 
-# Display results and statistics
-cat("Vocabulary word counts / occurrences")
-# kable(pos_df) %>%
-#   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
 
-# kable(neg_df) %>%
-#   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+`r pagebreak()`
 
-pos_df
-neg_df
-neu_df
+**Appendix: All Word Occurrences and Counts**
+
+**1 - Positives**
+
+```{r TWO - Pos, echo=FALSE}
+
+kable(pos_df) %>%
+   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+**2 - Negatives**
+
+```{r TWO - Negatives, echo=FALSE}
+
+kable(neg_df) %>%
+   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+**3 - Neutrals**
+
+```{r TWO - Neutrals, echo=FALSE}
+
+kable(neu_df) %>%
+   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 ```
 
 **End of Document**
-
