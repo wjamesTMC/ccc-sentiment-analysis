@@ -47,9 +47,7 @@ library(googlesheets)
 
 
 # Import and Open the data file / Establish the data set
-
-# data_filename <- readline("What file do you want to work with? [YY MM DD-DD.csv]? ")
-data_filename <- "19 08 05-11.csv"
+data_filename <- "19 08 12-18 TEST.csv"
 dat <- read.csv(data_filename, stringsAsFactors = FALSE)
 
 vocab_filename <- "0_Input_Vocabulary.csv"
@@ -68,16 +66,116 @@ dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
 # Select the desired columns
 dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
 
-# Remove lines where Type is junk or misdirected or otherwise erroneous
-dat <- dat %>% filter(Type != "Junk")
-dat <- dat %>% filter(Type != "Duplicate")
-dat <- dat %>% filter(Type != "Misdirected")
-dat <- dat %>% filter(Type != "")
-dat <- dat %>% filter(Type != "Out of Office")
-dat <- dat %>% filter(Type != "No Answer")
-dat <- dat %>% filter(Description != "")
+# Assign categoryt "Junk"
+detect_junk <- c("To view this email online,",
+                 "FOR IMMEDIATE RELEASE",
+                 "IMPORTANT ANNOUNCEMENT",
+                 "to unsubscribe from this")
+                 
+Pattern = paste(detect_junk, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Junk"
+     }
+}
+
+detect_billing <- c("renew", 
+                    "subscription", 
+                    "address", 
+                    "credit card",
+                    "billing",
+                    "mailing",
+                    "p.o. box",
+                    "PO box",
+                    "payment") 
+
+Pattern = paste(detect_billing, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Billing/Payment"
+     }
+}
+
+detect_reader  <- c("give permission to publish my comment",
+                    "Dear editor",
+                    "Dear Editor")
+
+Pattern = paste(detect_reader, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Reader Submission"
+     }
+}
+
+detect_tech <- c("server",
+                 "custs out",
+                 "download",
+                 "trying to access",
+                 "cuts out",
+                 "can't access",
+                 "problem")
+
+Pattern = paste(detect_tech, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Technical/Downloading"
+     }
+}
+
+detect_clerk <- c("membership",
+                  "disolve",
+                  "dissolution",
+                  "branch church",
+                  "church records")
+
+
+Pattern = paste(detect_clerk, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Clerk's Office"
+     }
+}
+
+detect_noanswer <- c("Kindle Personal Document Service")
+
+Pattern = paste(detect_noanswer, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "No Answer"
+     }
+}
+
+
+dat$Type
+
+# Open historical data file and append current week's data
+output_file <- gs_new("CCC Test_191002", input = dat)
+
 
 # Remove lines with known not relevant strings
+for(i in 1:nrow(dat)) {
+     if(str_detect(dat$Description[i], "To view this email online,") == TRUE) {
+          dat$Type[i] <- "Junk"
+     }
+     if(str_detect(dat$Description[i], "FOR IMMEDIATE RELEASE") == TRUE) {
+          dat$Type[i] <- "Junk"
+     }
+}
+
+dat$Type
+       
 dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
 dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
 dat <- dat %>% filter(!str_detect(Description, 'for immediate release'))
@@ -93,10 +191,19 @@ dat <- dat %>% filter(!str_detect(Description, 'dataprotection+unsubscribe@csps.
 dat <- dat %>% filter(!str_detect(Description, 'Test Comment'))
 dat <- dat %>% filter(!str_detect(Description, 'murdered'))
 
+# Remove lines where Type is junk or misdirected or otherwise erroneous
+dat <- dat %>% filter(Type != "Junk")
+dat <- dat %>% filter(Type != "Duplicate")
+dat <- dat %>% filter(Type != "Misdirected")
+dat <- dat %>% filter(Type != "")
+dat <- dat %>% filter(Type != "Out of Office")
+dat <- dat %>% filter(Type != "No Answer")
+dat <- dat %>% filter(Description != "")
+
 Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
 Topic_list  <- unique(dat$Topic)
-Type_list   <- unique(dat$Topic)
+Type_list   <- unique(dat$Type)
 
 # Verify the number of unique values of the various factors
 cat("Summary of input file after cleanup")
@@ -263,6 +370,9 @@ for(i in 1:num_descs) {
      
      # This line removeS punctuation in the description to leave just text
      dat$Desc[i] <- gsub("[[:punct:]]", "", dat$Desc[i])
+     
+     # Now remove all line breaks
+     dat$Desc[i] <- gsub("[\r\n]", "", dat$Desc[i])
      
      for(j in 1:nrow(neg_vocab)) {
           

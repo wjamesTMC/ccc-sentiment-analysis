@@ -47,12 +47,9 @@ library(googlesheets)
 # Download and open file
 #
 
-
 # Import and Open the data file / Establish the data set
-
-# data_filename <- readline("What file do you want to work with? [YY MM DD-DD.csv]? ")
-data_filename <- "19 08 05-11.csv"
-stats_period   <- substr(data_filename, start = 1, stop = 11)
+data_filename <- "19 08 12-18.csv"
+stats_period  <- substr(data_filename, start = 1, stop = 11)
 dat <- read.csv(data_filename, stringsAsFactors = FALSE)
 
 vocab_filename <- "0_Input_Vocabulary.csv"
@@ -86,7 +83,7 @@ dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
 dat <- dat %>% filter(!str_detect(Description, 'for immediate release'))
 dat <- dat %>% filter(!str_detect(Description, 'Kindle Personal Document Service'))
 dat <- dat %>% filter(!str_detect(Description, 'connect on LinkedIn'))
-dat <- dat %>% filter(!str_detect(Description, ' Please share this with your members'))
+dat <- dat %>% filter(!str_detect(Description, 'Please share this with your members'))
 dat <- dat %>% filter(!str_detect(Description, 'Sent from my Samsung device'))
 dat <- dat %>% filter(!str_detect(Description, 'This note is to confirm that the message'))
 dat <- dat %>% filter(!str_detect(Description, 'Sent from my iPhone'))
@@ -99,7 +96,7 @@ dat <- dat %>% filter(!str_detect(Description, 'murdered'))
 Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
 Topic_list  <- unique(dat$Topic)
-Type_list   <- unique(dat$Topic)
+Type_list   <- unique(dat$Type)
 
 # Calc the number of comments (remove "NR" from the count)
 num_descs <- sapply(dat, function(x)length(unique(x)))[3]
@@ -111,17 +108,14 @@ This report covers statistics for the period of `r stats_period`
 
 The statistics below arre net of entries labeled "junk", "no answer" and similar categorizations appropriate for removing them from the analysis.
 
-```{r sapply() summary, echo=FALSE}
-# Verify the number of unique values of the various factors
-cat("Unique IDs:          ", sapply(dat, function(x)length(unique(x)))[1])
-cat("Unique Subjects:     ", sapply(dat, function(x)length(unique(x)))[2])
-cat("Unique Descriptions: ", sapply(dat, function(x)length(unique(x)))[3])
-cat("Unique Clients:      ", sapply(dat, function(x)length(unique(x)))[4])
-cat("Unique Topics:       ", sapply(dat, function(x)length(unique(x)))[5])
-cat("Unique Categories:   ", sapply(dat, function(x)length(unique(x)))[6])
-```
+Unique IDs         : `r sapply(dat, function(x)length(unique(x)))[1]`  
+Unique Subjects    : `r sapply(dat, function(x)length(unique(x)))[2]`  
+Unique Descriptions: `r sapply(dat, function(x)length(unique(x)))[3]`  
+Unique Clients     : `r sapply(dat, function(x)length(unique(x)))[4]`  
+Unique Topics      : `r sapply(dat, function(x)length(unique(x)))[5]`  
+Unique Categories  : `r sapply(dat, function(x)length(unique(x)))[6]`  
 
-**Section 1 - Entry Descriptions with More than Two Negative Words**
+**Section 1 - Descriptions with More than Two Negative Words (1st 500 Words)**
  
 ```{r Particularly negative entries, echo=FALSE, comment=NA}
 #--------------------------------------------------------------------
@@ -149,6 +143,9 @@ for(i in 1:num_descs) {
      
      # This line removeS punctuation in the description to leave just text
      dat$Desc[i] <- gsub("[[:punct:]]", "", dat$Desc[i])
+     
+     # Now remove all line breaks
+     dat$Desc[i] <- gsub("[\r\n]", "", dat$Desc[i])
      
      for(j in 1:nrow(neg_vocab)) {
           
