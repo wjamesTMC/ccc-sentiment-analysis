@@ -68,15 +68,6 @@ dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
 # Select the desired columns
 dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
 
-# Remove lines where Type is junk or misdirected or otherwise erroneous
-dat <- dat %>% filter(Type != "Junk")
-dat <- dat %>% filter(Type != "Duplicate")
-dat <- dat %>% filter(Type != "Misdirected")
-dat <- dat %>% filter(Type != "")
-dat <- dat %>% filter(Type != "Out of Office")
-dat <- dat %>% filter(Type != "No Answer")
-dat <- dat %>% filter(Description != "")
-
 # Remove lines with known not relevant strings
 dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
 dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
@@ -92,6 +83,15 @@ dat <- dat %>% filter(!str_detect(Description, 'View this email in your browser'
 dat <- dat %>% filter(!str_detect(Description, 'dataprotection+unsubscribe@csps.com'))
 dat <- dat %>% filter(!str_detect(Description, 'Test Comment'))
 dat <- dat %>% filter(!str_detect(Description, 'murdered'))
+
+# Remove lines where Type is junk or misdirected or otherwise erroneous
+dat <- dat %>% filter(Type != "Junk")
+dat <- dat %>% filter(Type != "Duplicate")
+dat <- dat %>% filter(Type != "Misdirected")
+dat <- dat %>% filter(Type != "")
+dat <- dat %>% filter(Type != "Out of Office")
+dat <- dat %>% filter(Type != "No Answer")
+dat <- dat %>% filter(Description != "")
 
 Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)

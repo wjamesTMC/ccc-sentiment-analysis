@@ -70,7 +70,8 @@ dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
 detect_junk <- c("To view this email online,",
                  "FOR IMMEDIATE RELEASE",
                  "IMPORTANT ANNOUNCEMENT",
-                 "to unsubscribe from this")
+                 "to unsubscribe from this",
+                 "connect on LinkedIn")
                  
 Pattern = paste(detect_junk, collapse = "|")
 result <- grepl(Pattern, dat$Description)
@@ -157,6 +158,28 @@ for(i in 1:nrow(dat)) {
      }
 }
 
+detect_unsubscribe
+detect_outofoffice
+detect_acctmodification
+detect_delivery
+detect_correction
+detect_duplicate
+detect_feedbackpos
+detect_feedbackneg
+detect_feddbackneu
+detect_genquestion
+detect_gift
+detect_misdirected
+detect_newsletter
+detect_Permission/Copyright
+detect_refunc
+detect_renewal
+detect_search
+detect_submission
+detect_subscribe
+detect_suggestion
+detect_unsubscribe
+detect_other
 
 dat$Type
 
