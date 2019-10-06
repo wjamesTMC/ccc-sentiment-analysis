@@ -45,7 +45,6 @@ library(googlesheets)
 # Download and open file
 #
 
-
 # Import and Open the data file / Establish the data set
 data_filename <- "19 08 12-18 TEST.csv"
 dat <- read.csv(data_filename, stringsAsFactors = FALSE)
@@ -60,37 +59,318 @@ neu_vocab      <- comms %>% filter(Tone == "Neutral")
 # Clean data file to set vector names
 #
 
-dat <- rename(dat, replace = c("Clients_CCC__c" = "Client",
-                               "Products_Topics_CCC__c" = "Topic"))
+dat <- rename(dat, replace = c("Clients_CCC__c" = "Client", "Products_Topics_CCC__c" = "Topic"))
+dat<- dat %>% mutate(M_Count = 0)
               
 # Select the desired columns
-dat <- dat %>% select(Id,Subject, Description, Client, Topic, Type)
+dat <- dat %>% select(Id, Subject, Description, Client, Topic, Type, O_Type, M_Count)
 
-# Assign categoryt "Junk"
-detect_junk <- c("To view this email online,",
-                 "FOR IMMEDIATE RELEASE",
-                 "IMPORTANT ANNOUNCEMENT",
-                 "to unsubscribe from this",
-                 "connect on LinkedIn")
-                 
-Pattern = paste(detect_junk, collapse = "|")
+# Fornow, remove duplicates - but you have to figure out how to trap them
+dat <- dat %>% filter(O_Type != "Duplicate")
+
+#*******************************************************************************
+#
+# Section 1: Examine description and classify as to Type category
+#
+#*******************************************************************************
+
+#
+# Detect emails that are just out of the office notices
+#
+
+match_term <- "Out of office"
+
+# Vocabulary words to check
+detect_outofoffice <- c("out office",
+                        "out of office",
+                        "out of the office",
+                        "on vacation",
+                        "away from the office",
+                        "will reply to you",
+                        "das Büro nicht besetzt")
+
+# Check each of the words against the Descriptions
+Pattern = paste(detect_outofoffice, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+# For each match, mark the Type field as Out of office
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- match_term
+          dat$M_Count[i] <- 1
+     }
+}
+
+ooo_success <- dat %>% filter(dat$O_Type == match_term) %>% 
+     mutate(match_value = 0)
+
+for(i in 1:nrow(ooo_success)) {
+     if(ooo_success$O_Type[i] == ooo_success$Type[i]) {
+          ooo_success$match_value[i] = 1
+     }
+}
+
+success <- sum(ooo_success$match_value) / nrow(ooo_success)
+cat("Success rate for out of the office is:", success)
+
+# Write out the correct matches to the output dataframe
+out_df <- dat %>% filter(dat$M_Count == 1)
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
+
+
+#
+# Detect emails where user is having a technical problem
+#
+
+match_term <- "Technical"
+
+# Vocabulary words to check
+detect_tech <- c("404",
+                 "an't get in",
+                 "attempting",
+                 "can't access",
+                 "cuts out",
+                 "does not work",
+                 "doesn't work",
+                 "download",
+                 "eed help",
+                 "eed Help",
+                 "error message",
+                 "FAQ",
+                 "finally found",
+                 "font size",
+                 "frustrated",
+                 "hat happened",
+                 "have not received",
+                 "haven't rceived",
+                 "haven't rec'd",
+                 "hen I log into",
+                 "how to send",
+                 "lank page",
+                 "logged in",
+                 "magnification",
+                 "no audio",
+                 "not allowing me",
+                 "ot able to",
+                 "ot able",
+                 "ot installed",
+                 "ow do I",
+                 "Page Not Found",
+                 "password",
+                 "problem",
+                 "reroutes",
+                 "reset",
+                 "ried",
+                 "s it possible",
+                 "server",
+                 "stopped",
+                 "the audio",
+                 "trying to access",
+                 "trying to check",
+                 "unable to",
+                 "unlock")
+
+Pattern = paste(detect_tech, collapse = "|")
 result <- grepl(Pattern, dat$Description)
 
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
-          dat$Type[i] <- "Junk"
+          dat$Type[i] <- match_term
+          dat$M_Count[i] <- 1
      }
 }
 
+tech_success <- dat %>% filter(dat$O_Type == match_term) %>% 
+     mutate(match_value = 0)
+
+for(i in 1:nrow(tech_success)) {
+     if(tech_success$O_Type[i] == tech_success$Type[i]) {
+          tech_success$match_value[i] = 1
+     }
+}
+
+success <- sum(tech_success$match_value) / nrow(tech_success)
+cat("Success rate for Technical is:", success)
+
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
+
+#
+# Detect emails where the category is  "Junk"
+#
+
+match_term <- "Junk"
+
+# Vocabulary
+detect_junk <- c("To view this email online",
+                 "FOR IMMEDIATE RELEASE",
+                 "For immediate release",
+                 "IMPORTANT ANNOUNCEMENT",
+                 "connect on LinkedIn",
+                 "hacker",
+                 "WHO study",
+                 "Join the conversation",
+                 "Did you know",
+                 "The Nation Press Room",
+                 "a new poll",
+                 "Sale",
+                 "blog",
+                 "Baston Elevate",
+                 "combined with other offers",
+                 "update your preferences",
+                 "webafrica",
+                 "f you don't want to receive these emails from Facebook",
+                 "linkedin.com",
+                 "Enews",
+                 "contest",
+                 "advertising",
+                 "egister Now",
+                 "egister now",
+                 "clergy",
+                 "consultant",
+                 "announces",
+                 "his offer",
+                 "CEO",
+                 "ptimization",
+                 "Amtrak",
+                 "GoTranscript",
+                 "my campaign",
+                 "vent summary",
+                 "ISBN",
+                 "bigdeal",
+                 "smear",
+                 "Adword",
+                 "I am Mr",
+                 "BPO",
+                 "empower",
+                 "News Release",
+                 "book series",
+                 "winning author",
+                 "to view it",
+                 "traffic",
+                 "vent Summary",
+                 "licensed",
+                 "clinical",
+                 "psychologist",
+                 "5W PUBLIC RELATIONS",
+                 "D&S Newsletter",
+                 "white supremacy",
+                 "investment",
+                 "GrandPad",
+                 "promo code",
+                 "RPO",
+                 "MD",
+                 "ew Video",
+                 "ew video",
+                 "earn how to",
+                 "ndustrial",
+                 "newest products",
+                 "ATTENTION",
+                 "iew this email online",
+                 "manufacturer",
+                 "donation",
+                 "hipping method",
+                 "hipping Method",
+                 "exporter",
+                 "factory",
+                 "INSTAGRAM",
+                 "o view it",
+                 "stimulante",
+                 "Bomba",
+                 "nstagram",
+                 "company",
+                 "exual",
+                 "lementary schools",
+                 "ilitary",
+                 "quickly promote",
+                 "pgrade your mail",
+                 "first look at",
+                 "rewarding job",
+                 "globalmedia",
+                 "buy in",
+                 "icrophones",
+                 "Eversmile",
+                 "Politique",
+                 "sarasfarm2",
+                 "Upcoming Events",
+                 "upcoming events",
+                 "lucky tickets",
+                 "domination",
+                 "comedian",
+                 "saving money for",
+                 "click?",
+                 "WaterBrook",
+                 "NCIA",
+                 "xclusivo",
+                 "Barrister",
+                 "review your purchase",
+                 "constantcontact",
+                 "online marketing",
+                 "oday's topic summary",
+                 "Macho Man",
+                 "CONFERENCE",
+                 "conference",
+                 "VICTIM",
+                 "victim",
+                 "ou’re receiving this email because",
+                 "info@",
+                 "To view this email online, paste this link into your browser: ")
+
+Pattern = paste(detect_junk, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- match_term
+          dat$M_Count[i] <- 1
+     }
+}
+
+junk_success <- dat %>% filter(dat$O_Type == match_term) %>% 
+     mutate(match_value = 0)
+
+for(i in 1:nrow(junk_success)) {
+     if(junk_success$O_Type[i] == junk_success$Type[i]) {
+          junk_success$match_value[i] = 1
+     }
+}
+
+success <- sum(junk_success$match_value) / nrow(junk_success)
+cat("Success rate for Technical is:", success)
+
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
+
+#
+# Detect emails that deal with billing problems
+#
+
+# Vocabulary to check
 detect_billing <- c("renew", 
+                    "cancel",
+                    "contribution",
+                    "reasurer",
                     "subscription", 
                     "address", 
                     "credit card",
-                    "billing",
-                    "mailing",
+                    "expired",
+                    "expiration",
+                    "billing address",
+                    "mailing address",
                     "p.o. box",
                     "PO box",
-                    "payment") 
+                    "payment",
+                    "Zahlungen",
+                    "cancel subscription") 
 
 Pattern = paste(detect_billing, collapse = "|")
 result <- grepl(Pattern, dat$Description)
@@ -98,56 +378,26 @@ result <- grepl(Pattern, dat$Description)
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$Type[i] <- "Billing/Payment"
+          dat$M_Count[i] <- 1
      }
 }
 
-detect_reader  <- c("give permission to publish my comment",
-                    "Dear editor",
-                    "Dear Editor")
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
 
-Pattern = paste(detect_reader, collapse = "|")
-result <- grepl(Pattern, dat$Description)
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
 
-for(i in 1:nrow(dat)) {
-     if(result[i] == TRUE) {
-          dat$Type[i] <- "Reader Submission"
-     }
-}
+#
+# Detect emails that reflect no answer
+#
 
-detect_tech <- c("server",
-                 "custs out",
-                 "download",
-                 "trying to access",
-                 "cuts out",
-                 "can't access",
-                 "problem")
-
-Pattern = paste(detect_tech, collapse = "|")
-result <- grepl(Pattern, dat$Description)
-
-for(i in 1:nrow(dat)) {
-     if(result[i] == TRUE) {
-          dat$Type[i] <- "Technical/Downloading"
-     }
-}
-
-detect_clerk <- c("membership",
-                  "disolve",
-                  "dissolution",
-                  "branch church",
-                  "church records")
-
-
-Pattern = paste(detect_clerk, collapse = "|")
-result <- grepl(Pattern, dat$Description)
-
-for(i in 1:nrow(dat)) {
-     if(result[i] == TRUE) {
-          dat$Type[i] <- "Clerk's Office"
-     }
-}
-
-detect_noanswer <- c("Kindle Personal Document Service")
+# Vocabulary
+detect_noanswer <- c("Kindle Personal Document Service",
+                     "Representative's Email *   ",
+                     "This note is to confirm that the message with subject '",
+                     "Your contact, on account ",
+                     "Your form has a new entry. Here are all the answers.")
 
 Pattern = paste(detect_noanswer, collapse = "|")
 result <- grepl(Pattern, dat$Description)
@@ -155,36 +405,196 @@ result <- grepl(Pattern, dat$Description)
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$Type[i] <- "No Answer"
+          dat$M_Count[i] <- 1
      }
 }
 
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
+
+#
+# Detect emails related to account modifications
+#
+
+# Vocabulary
+detect_acctmodification <- c("membership",
+                             "member",
+                             "disolve",
+                             "dissolution",
+                             "branch church",
+                             "church records",
+                             "account",
+                             "my order",
+                             "ordered",
+                             "ailing",
+                             "Email",
+                             "email",
+                             "name",
+                             "Name",
+                             "address",
+                             "Address",
+                             "mailing",
+                             "Mailing",
+                             "delivery",
+                             "ontinue receiving",
+                             "embership number",
+                             "passed away",
+                             "passed on")
+
+Pattern = paste(detect_acctmodification, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Account Modification"
+          dat$M_Count[i] <- 1
+     }
+}
+
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
+
+#
+# Detect emails reporting delivery problems
+#
+
+# Vocabulary
+detect_delivery <- c("did not appear",
+                     "did not come",
+                     "delivery",
+                     "DELIVERY",
+                     "have not received",
+                     "in my mailbox",
+                     "order has not been received",
+                     "am not receiving",
+                     "have stopped getting",
+                     "have not been receiving",
+                     "has not arrived",
+                     "Shipment Notification Account Number",
+                     "have shipped the following item",
+                     "ntil last week I received")
+
+Pattern = paste(detect_delivery, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$Type[i] <- "Delivery"
+          dat$M_Count[i] <- 1
+     }
+}
+
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
+
+##################
+#
+# CHECK OUTPUT
+#
+##################
+
+out_df <- rbind(out_df, dat)
+out_df <- out_df %>% mutate(match_value = 0)
+for(i in 1:nrow(out_df)) {
+     if(out_df$O_Type[i] == out_df$Type[i]) {
+          out_df$match_value[i] = 1
+     }
+}
+
+success <- sum(out_df$match_value) / nrow(out_df)
+cat("Success rate is:", success)
+
+# File name and then write out the out_df dataframe to the .csv file
+output_file <- "New.csv"
+out_df <- out_df %>% select(Id, O_Type, Type, M_Count, Description)
+write.csv(out_df, output_file)
+
+# House orders
+house order
+
+# Correction/Typo
+Share your Comments
+correction
+corrected
+
+
+
+# Design/format
+more readable
+gray type
+Italics
+struggle with the type
+#
+# output_file <- gs_new("CCC Test_191002", input = dat)
+#
+
+
+
+##################################################
+# CURRENT END
+#################################################$
+
+test_sum <- nrow(dat %>% filter(O_Type == "Junk"))
+success <- sum(dat$M_Count) / test_sum
+cat("Success rate is:", success)
+# Open historical data file and append current week's data
+
+
 detect_unsubscribe
-detect_outofoffice
-detect_acctmodification
-detect_delivery
-detect_correction
-detect_duplicate
-detect_feedbackpos
-detect_feedbackneg
-detect_feddbackneu
+
+
 detect_genquestion
 detect_gift
+"gift subscriptioin"
+"one year gift"
+
 detect_misdirected
+"ent package"
+
 detect_newsletter
 detect_Permission/Copyright
-detect_refunc
+detect_refund
 detect_renewal
 detect_search
 detect_submission
 detect_subscribe
-detect_suggestion
-detect_unsubscribe
+detect_suggestiondetect_delivery
+"ave not received"
+detect_correction
+detect_legal
+"permission to use"
+"permission to copy"
+
+detect_duplicate
+
+#
+# Section 2: Classify by product
+#
+
+#
+# Section 3: classify as positive, negative, or neutral
+#
+
+detect_feedbackpos
+detect_feedbackneg
+detect_feddbackneu
+
+
+# Change remaining NA values to "other"
 detect_other
+
 
 dat$Type
 
-# Open historical data file and append current week's data
-output_file <- gs_new("CCC Test_191002", input = dat)
 
 
 # Remove lines with known not relevant strings
@@ -197,31 +607,31 @@ for(i in 1:nrow(dat)) {
      }
 }
 
-dat$Type
-       
-dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
-dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
-dat <- dat %>% filter(!str_detect(Description, 'for immediate release'))
-dat <- dat %>% filter(!str_detect(Description, 'Kindle Personal Document Service'))
-dat <- dat %>% filter(!str_detect(Description, 'connect on LinkedIn'))
-dat <- dat %>% filter(!str_detect(Description, ' Please share this with your members'))
-dat <- dat %>% filter(!str_detect(Description, 'Sent from my Samsung device'))
-dat <- dat %>% filter(!str_detect(Description, 'This note is to confirm that the message'))
-dat <- dat %>% filter(!str_detect(Description, 'Sent from my iPhone'))
-dat <- dat %>% filter(!str_detect(Description, 'Longyear Museum'))
-dat <- dat %>% filter(!str_detect(Description, 'View this email in your browser'))
-dat <- dat %>% filter(!str_detect(Description, 'dataprotection+unsubscribe@csps.com'))
-dat <- dat %>% filter(!str_detect(Description, 'Test Comment'))
-dat <- dat %>% filter(!str_detect(Description, 'murdered'))
+# dat$Type
+#        
+# dat <- dat %>% filter(!str_detect(Description, 'Ignore this message'))
+# dat <- dat %>% filter(!str_detect(Description, 'out of the office'))
+# dat <- dat %>% filter(!str_detect(Description, 'for immediate release'))
+# dat <- dat %>% filter(!str_detect(Description, 'Kindle Personal Document Service'))
+# dat <- dat %>% filter(!str_detect(Description, 'connect on LinkedIn'))
+# dat <- dat %>% filter(!str_detect(Description, ' Please share this with your members'))
+# dat <- dat %>% filter(!str_detect(Description, 'Sent from my Samsung device'))
+# dat <- dat %>% filter(!str_detect(Description, 'This note is to confirm that the message'))
+# dat <- dat %>% filter(!str_detect(Description, 'Sent from my iPhone'))
+# dat <- dat %>% filter(!str_detect(Description, 'Longyear Museum'))
+# dat <- dat %>% filter(!str_detect(Description, 'View this email in your browser'))
+# dat <- dat %>% filter(!str_detect(Description, 'dataprotection+unsubscribe@csps.com'))
+# dat <- dat %>% filter(!str_detect(Description, 'Test Comment'))
+# dat <- dat %>% filter(!str_detect(Description, 'murdered'))
 
 # Remove lines where Type is junk or misdirected or otherwise erroneous
-dat <- dat %>% filter(Type != "Junk")
-dat <- dat %>% filter(Type != "Duplicate")
-dat <- dat %>% filter(Type != "Misdirected")
-dat <- dat %>% filter(Type != "")
-dat <- dat %>% filter(Type != "Out of Office")
-dat <- dat %>% filter(Type != "No Answer")
-dat <- dat %>% filter(Description != "")
+# dat <- dat %>% filter(Type != "Junk")
+# dat <- dat %>% filter(Type != "Duplicate")
+# dat <- dat %>% filter(Type != "Misdirected")
+# dat <- dat %>% filter(Type != "")
+# dat <- dat %>% filter(Type != "Out of Office")
+# dat <- dat %>% filter(Type != "No Answer")
+# dat <- dat %>% filter(Description != "")
 
 Subj_list   <- unique(dat$Subject)
 Client_list <- unique(dat$Client)
