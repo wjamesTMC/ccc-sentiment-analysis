@@ -87,7 +87,8 @@ detect_outofoffice <- c("out office",
                         "on vacation",
                         "away from the office",
                         "will reply to you",
-                        "das Büro nicht besetzt")
+                        "das Büro nicht besetzt",
+                        "our email has been received and will be replied to")
 
 # Check each of the words against the Descriptions
 Pattern = paste(detect_outofoffice, collapse = "|")
@@ -111,7 +112,7 @@ for(i in 1:nrow(ooo_success)) {
 }
 
 success <- sum(ooo_success$match_value) / nrow(ooo_success)
-cat("Success rate for out of the office is:", success)
+cat("Success rate for out of the office is:", success * 100, "%")
 
 # Write out the correct matches to the output dataframe
 out_df <- dat %>% filter(dat$M_Count == 1)
@@ -130,7 +131,8 @@ match_term <- "Technical"
 detect_tech <- c("404",
                  "an't get in",
                  "attempting",
-                 "can't access",
+                 "an't access",
+                 "an't get in",
                  "cuts out",
                  "does not work",
                  "doesn't work",
@@ -144,15 +146,17 @@ detect_tech <- c("404",
                  "frustrated",
                  "hat happened",
                  "have not received",
-                 "haven't rceived",
+                 "haven't received",
                  "haven't rec'd",
                  "hen I log into",
                  "how to send",
                  "lank page",
                  "logged in",
+                 "lost my app",
                  "magnification",
                  "no audio",
                  "not allowing me",
+                 "not been able to access",
                  "ot able to",
                  "ot able",
                  "ot installed",
@@ -192,7 +196,7 @@ for(i in 1:nrow(tech_success)) {
 }
 
 success <- sum(tech_success$match_value) / nrow(tech_success)
-cat("Success rate for Technical is:", success)
+cat("Success rate for Technical is:", success * 100, "%")
 
 # Write out the correct matches to the output dataframe
 out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
@@ -313,12 +317,18 @@ detect_junk <- c("To view this email online",
                  "online marketing",
                  "oday's topic summary",
                  "Macho Man",
+                 "Nova Câmera Discreta",
+                 "Para visualizá-lo on-line",
                  "CONFERENCE",
                  "conference",
                  "VICTIM",
                  "victim",
                  "ou’re receiving this email because",
                  "info@",
+                 "Vrbo",
+                 "and HomeAway",
+                 "monster",
+                 "MONSTER",
                  "To view this email online, paste this link into your browser: ")
 
 Pattern = paste(detect_junk, collapse = "|")
