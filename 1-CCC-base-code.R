@@ -107,23 +107,233 @@ detect_outofoffice <- c("out office",
 Pattern = paste(detect_outofoffice, collapse = "|")
 result <- grepl(Pattern, dat$Description)
 
-# For each match, mark the Type field as Out of office
+# Set up df to collect instances where we are not identifying correctly
+res_df <- data.frame("Id" = 1:nrow(dat),
+                     "O_Type" = 1:nrow(dat),
+                     "N_Type" = 1:nrow(dat))
+
+# If a word does show up, mark it with a "1" and save off the result
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$N_Type[i] <- match_term
           dat$M_Count[i] <- 1
+          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 2] <- dat$O_Type[i]
+          res_df[i, 3] <- dat$N_Type[i]
      }
 }
 
-# Collect all instances where the original classification = match term
-ooo_success <- dat %>% filter(dat$O_Type == match_term) %>% 
-     select(Id, M_Count)
+# Distill the results down to where we do not have a match
+reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
+prog_log <- nrow(res_df %>% filter(Id != N_Type))
+matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
+accuracy <- (matches / reps_log) * 100
 
-# Compare the number of identified lines with rep identified
-success <- sum(dat$M_Count) / nrow(ooo_success)
-cat("Success rate for out of the office is:", success * 100, "%")
+# Compute the percentage of correct matches out of the whole set
+cat("Reps identified", reps_log, "instances")
+cat("The program detected", prog_log, "instances")
+cat("There were", matches, "matches")
+cat("The program identified", (matches / reps_log) * 100, "% correctly")
+cat("The progrem identified", prog_log - matches, "incorrectly")
 
+error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
+
+# Clear out the correctly identified items
 dat <- dat %>% filter(dat$M_Count == 0)
+
+#
+# Detect emails where issue is delivery
+#
+
+match_term <- "Delivery"
+
+# Vocabulary
+detect_delivery <- c("did not appear",
+                     "did not come",
+                     "delivery",
+                     "DELIVERY",
+                     "have not received",
+                     "in my mailbox",
+                     "order has not been received",
+                     "am not receiving",
+                     "have stopped getting",
+                     "have not been receiving",
+                     "HAVE YET TO RECEIVE",
+                     "have yet to receive",
+                     "has not arrived",
+                     "issue missing",
+                     "issue is missing",
+                     "Shipment Notification",
+                     "have shipped the following item",
+                     "ntil last week I received")
+
+Pattern = paste(detect_delivery, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+# Set up df to collect instances where we are not identifying correctly
+res_df <- data.frame("Id" = 1:nrow(dat),
+                     "O_Type" = 1:nrow(dat),
+                     "N_Type" = 1:nrow(dat))
+
+# If a word does show up, mark it with a "1" and save off the result
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$N_Type[i] <- match_term
+          dat$M_Count[i] <- 1
+          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 2] <- dat$O_Type[i]
+          res_df[i, 3] <- dat$N_Type[i]
+     }
+}
+
+# Distill the results down to where we do not have a match
+reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
+prog_log <- nrow(res_df %>% filter(Id != N_Type))
+matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
+accuracy <- (matches / reps_log) * 100
+
+# Compute the percentage of correct matches out of the whole set
+cat("Reps identified", reps_log, "instances")
+cat("The program detected", prog_log, "instances")
+cat("There were", matches, "matches")
+cat("The program identified", (matches / reps_log) * 100, "% correctly")
+cat("The progrem identified", prog_log - matches, "incorrectly")
+
+error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
+
+# Clear out the correctly identified items
+dat <- dat %>% filter(dat$M_Count == 0)
+
+#
+# Detect emails where user is having a technical problem
+#
+
+match_term <- "Technical"
+
+# Vocabulary words to check
+detect_tech <- c("404",
+                 "an't get in",
+                 "access",
+                 "attempting",
+                 "an't access",
+                 "an't get in",
+                 "annot get in",
+                 "assist me",
+                 "annot find",
+                 "annot set up",
+                 "an't set up",
+                 "annot register",
+                 "blurry",
+                 "broken link",
+                 "CAN'T OPEN",
+                 "can't open",
+                 "can't sign in",
+                 "code missing",
+                 "cuts out",
+                 "cutting out",
+                 "does not open",
+                 "does not work",
+                 "does NOT work",
+                 "doesn't open",
+                 "doesn't work",
+                 "download",
+                 "eed help",
+                 "eed Help",
+                 "error message",
+                 "et rid of",
+                 "FAQ",
+                 "finally found",
+                 "font size",
+                 "frustrated",
+                 "hat happened",
+                 "have not received",
+                 "haven't received",
+                 "haven't rec'd",
+                 "hen I log into",
+                 "homescreen",
+                 "how to send",
+                 "s this correct?",
+                 "jump",
+                 "lank page",
+                 "lease help me",
+                 "logged in",
+                 "login",
+                 "lost my app",
+                 "magnification",
+                 "my IPad",
+                 "my iPad",
+                 "navigate",
+                 "no audio",
+                 "not allowing me",
+                 "not been able to access",
+                 "ot permitted",
+                 "no audio",
+                 "ot able to",
+                 "ot able",
+                 "ot available",
+                 "ot back on line",
+                 "ot installed",
+                 "ow do I",
+                 "Page Not Found",
+                 "password",
+                 "Password",
+                 "problem",
+                 "reroutes",
+                 "reset",
+                 "restart",
+                 "ried",
+                 "s it possible",
+                 "server",
+                 "skipped",
+                 "sort this out",
+                 "stopped",
+                 "the audio",
+                 "too long",
+                 "trying to access",
+                 "trying to check",
+                 "swipe",
+                 "unable to",
+                 "unlock",
+                 "urgent",
+                 "URGENT")
+
+Pattern = paste(detect_tech, collapse = "|")
+result <- grepl(Pattern, dat$Description)
+
+# Set up df to collect instances where we are not identifying correctly
+res_df <- data.frame("Id" = 1:nrow(dat),
+                     "O_Type" = 1:nrow(dat),
+                     "N_Type" = 1:nrow(dat))
+
+# If a word does show up, mark it with a "1" and save off the result
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$N_Type[i]  <- match_term
+          dat$M_Count[i] <- 1
+          res_df[i, 1]   <- dat$Id[i]
+          res_df[i, 2]   <- dat$O_Type[i]
+          res_df[i, 3]   <- dat$N_Type[i]
+     }
+}
+
+# Distill the results down to where we do not have a match
+res_df <- res_df %>% filter(O_Type != N_Type)
+reps_count <- nrow(dat %>% filter(dat$O_Type == match_term))
+error_rate <- nrow(res_df) / reps_count
+
+# Compute the percentage of correct matches out of the whole set
+cat("Reps identified", reps_count, "instances")
+cat("The program detected", sum(dat$M_Count), "instances")
+cat("There were", nrow(res_df), "differences - an accuracy rate of", (1 - error_rate) * 100,"%")
+
+
+tech_success <- tech_success %>% filter(match_value == 0)
+
+# Write out the correct matches to the output dataframe
+out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
+
+# Remove the matches from the working dataframe to begin the next sequence
+dat <- dat %>% filter(dat$M_Count != 1)
 
 #
 # Detect emails where the category is  "Junk"
@@ -145,6 +355,7 @@ detect_junk <- c("5W PUBLIC RELATIONS",
                  "ad budget",
                  "Adword",
                  "Adquira Aqui",
+                 "all guns",
                  "Altcoin",
                  "Amtrak",
                  "an opinion I wrote",
@@ -350,125 +561,69 @@ error_rate <- nrow(res_df) / reps_count
 # Compute the percentage of correct matches out of the whole set
 cat("Reps identified", reps_count, "instances of Junk")
 cat("The program detected", sum(dat$M_Count), "instances of junk")
-cat("There were", nrow(res_df), "differences - an error rate of", error_rate * 100,"%")
+cat("There were", nrow(res_df), "differences - an accuracy rate of", (1 - error_rate) * 100,"%")
+
 # Remove the matches from the working dataframe to begin the next sequence
-dat <- dat %>% filter(dat$M_Count != 1)
+dat <- dat %>% filter(dat$M_Count == 0)
 
 #
-# Detect emails where user is having a technical problem
+# Detect emails that reflect no answer
 #
 
-match_term <- "Technical"
+match_term <- "No Answer"
 
-# Vocabulary words to check
-detect_tech <- c("404",
-                 "an't get in",
-                 "access",
-                 "attempting",
-                 "an't access",
-                 "an't get in",
-                 "annot get in",
-                 "assist me",
-                 "annot find",
-                 "annot set up",
-                 "an't set up",
-                 "annot register",
-                 "blurry",
-                 "CAN'T OPEN",
-                 "can't open",
-                 "can't sign in",
-                 "code missing",
-                 "cuts out",
-                 "cutting out",
-                 "does not open",
-                 "does not work",
-                 "does NOT work",
-                 "doesn't open",
-                 "doesn't work",
-                 "download",
-                 "eed help",
-                 "eed Help",
-                 "error message",
-                 "et rid of",
-                 "FAQ",
-                 "finally found",
-                 "font size",
-                 "frustrated",
-                 "hat happened",
-                 "have not received",
-                 "haven't received",
-                 "haven't rec'd",
-                 "hen I log into",
-                 "homescreen",
-                 "how to send",
-                 "s this correct?",
-                 "jump",
-                 "lank page",
-                 "lease help me",
-                 "logged in",
-                 "login",
-                 "lost my app",
-                 "magnification",
-                 "my IPad",
-                 "my iPad",
-                 "navigate",
-                 "no audio",
-                 "not allowing me",
-                 "not been able to access",
-                 "ot permitted",
-                 "no audio",
-                 "ot able to",
-                 "ot able",
-                 "ot available",
-                 "ot back on line",
-                 "ot installed",
-                 "ow do I",
-                 "Page Not Found",
-                 "password",
-                 "Password",
-                 "problem",
-                 "reroutes",
-                 "reset",
-                 "restart",
-                 "ried",
-                 "s it possible",
-                 "server",
-                 "skipped",
-                 "sort this out",
-                 "stopped",
-                 "the audio",
-                 "too long",
-                 "trying to access",
-                 "trying to check",
-                 "swipe",
-                 "unable to",
-                 "unlock",
-                 "urgent",
-                 "URGENT")
+# Vocabulary
+detect_noanswer <- c("Dear Customer",
+                     "Kindle Personal Document Service",
+                     "Representative's Email",
+                     "This note is to confirm that the message with subject '",
+                     "Your contact, on account ",
+                     "Your form has a new entry. Here are all the answers.",
+                     "This note is to confirm that the message with subject",
+                     "These update emails are optional",
+                     "Daily Thought",
+                     "GrandPad",
+                     "Ignore this message. Message")
 
-Pattern = paste(detect_tech, collapse = "|")
+Pattern = paste(detect_noanswer, collapse = "|")
 result <- grepl(Pattern, dat$Description)
 
+# Set up df to collect instances where we are not identifying correctly
+res_df <- data.frame("Id" = 1:nrow(dat),
+                     "O_Type" = 1:nrow(dat),
+                     "N_Type" = 1:nrow(dat))
+
+# If a word does show up, mark it with a "1" and save off the result
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$N_Type[i] <- match_term
           dat$M_Count[i] <- 1
+          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 2] <- dat$O_Type[i]
+          res_df[i, 3] <- dat$N_Type[i]
      }
 }
 
-tech_success <- dat %>% filter(dat$O_Type == match_term) %>% 
-     select(Id, O_Type, N_Type, match_value)
+# Distill the results down to where we do not have a match
+res_df <- res_df %>% filter(Id != O_Type) %>% filter(O_Type != N_Type)
+reps_count <- nrow(dat %>% filter(dat$O_Type == match_term))
+error_rate <- nrow(res_df) / reps_count
 
-for(i in 1:nrow(tech_success)) {
-     if(tech_success$O_Type[i] == tech_success$N_Type[i]) {
-          tech_success$match_value[i] = 1
-     }
-}
+# Compute the percentage of correct matches out of the whole set
+cat("Reps identified", reps_count, "instances")
+cat("The program detected", sum(dat$M_Count), "instances")
+cat("There were", nrow(res_df), "differences - an accuracy rate of", (1 - error_rate) * 100,"%")
 
-success <- sum(tech_success$match_value) / nrow(tech_success)
-cat("Success rate for Technical is:", success * 100, "%")
 
-tech_success <- tech_success %>% filter(match_value == 0)
+# Collect all instances where the original classification = match term
+noa_success <- dat %>% filter(dat$O_Type == match_term) %>% 
+     select(Id, M_Count) %>% filter(M_Count == 0)
+
+# Compare the number of identified lines with rep identified
+success <- sum(dat$M_Count) / nrow(noa_success)
+cat("Success rate for No Answer is:", success * 100, "%")
+
+dat <- dat %>% filter(dat$M_Count == 0)
 
 # Write out the correct matches to the output dataframe
 out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
@@ -540,32 +695,7 @@ out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
 # Remove the matches from the working dataframe to begin the next sequence
 dat <- dat %>% filter(dat$M_Count != 1)
 
-#
-# Detect emails that reflect no answer
-#
 
-# Vocabulary
-detect_noanswer <- c("Kindle Personal Document Service",
-                     "Representative's Email *   ",
-                     "This note is to confirm that the message with subject '",
-                     "Your contact, on account ",
-                     "Your form has a new entry. Here are all the answers.")
-
-Pattern = paste(detect_noanswer, collapse = "|")
-result <- grepl(Pattern, dat$Description)
-
-for(i in 1:nrow(dat)) {
-     if(result[i] == TRUE) {
-          dat$N_Type[i] <- "No Answer"
-          dat$M_Count[i] <- 1
-     }
-}
-
-# Write out the correct matches to the output dataframe
-out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
-
-# Remove the matches from the working dataframe to begin the next sequence
-dat <- dat %>% filter(dat$M_Count != 1)
 
 #
 # Detect emails related to account modifications
@@ -612,28 +742,7 @@ out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
 # Remove the matches from the working dataframe to begin the next sequence
 dat <- dat %>% filter(dat$M_Count != 1)
 
-#
-# Detect emails reporting delivery problems
-#
 
-# Vocabulary
-detect_delivery <- c("did not appear",
-                     "did not come",
-                     "delivery",
-                     "DELIVERY",
-                     "have not received",
-                     "in my mailbox",
-                     "order has not been received",
-                     "am not receiving",
-                     "have stopped getting",
-                     "have not been receiving",
-                     "has not arrived",
-                     "Shipment Notification Account Number",
-                     "have shipped the following item",
-                     "ntil last week I received")
-
-Pattern = paste(detect_delivery, collapse = "|")
-result <- grepl(Pattern, dat$Description)
 
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {

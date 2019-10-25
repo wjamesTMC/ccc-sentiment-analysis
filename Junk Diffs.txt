@@ -1,0 +1,84 @@
+No Answer
+1  5000g000028bccAAAQ Account Modification No Answer
+2  5000g000028b2s3AAA          Misdirected No Answer
+3  5000g000028ayW2AAI  Feedback - Negative No Answer
+4  5000g000028b7PlAAI          Misdirected No Answer
+5  5000g000028b4EQAAY  Feedback - Negative No Answer
+6  5000g000028bec0AAA                 Junk No Answer
+7  5000g000028bPZFAA2           Suggestion No Answer
+8  5000g000028bJbAAAU            Technical No Answer
+9  5000g000028bAfZAAU          Misdirected No Answer
+10 5000g000028bNgcAAE          Misdirected No Answer
+11 5000g000028bAtbAAE           Newsletter No Answer
+12 5000g000028bZ46AAE           Newsletter No Answer
+13 5000g000028bFmkAAE  Feedback - Positive No Answer
+14 5000g000028bU0BAAU                 Junk No Answer
+15 5000g000028bHk0AAE            Technical No Answer
+16 5000g000028bWfIAAU             Delivery No Answer
+17 5000g000028bDLFAA2            Technical No Answer
+18 5000g000028axFUAAY            Technical No Answer
+
+Junk
+1  5000g000028b2ADAAY          Misdirected   Junk
+2  5000g000028asGcAAI            No Answer   Junk
+3  5000g000028bcdIAAQ            Technical   Junk
+4  5000g000028b2s3AAA          Misdirected   Junk
+5  5000g000028b7ohAAA  Feedback - Positive   Junk
+6  5000g000028auyWAAQ            No Answer   Junk
+7  5000g000028azwuAAA            No Answer   Junk
+8  5000g000028auOTAAY            No Answer   Junk
+9  5000g000028b1mNAAQ            No Answer   Junk
+10 5000g000028b1nVAAQ  Feedback - Positive   Junk
+11 5000g000028b0PwAAI             Delivery   Junk
+12 5000g000028b4oOAAQ          Misdirected   Junk
+13 5000g000028b4exAAA           Newsletter   Junk
+14 5000g000028b3ytAAA          Misdirected   Junk
+15 5000g000028b3OYAAY      Billing/Payment   Junk
+16 5000g000028b7PlAAI          Misdirected   Junk
+17 5000g000028auHmAAI            No Answer   Junk
+18 5000g000028b09KAAQ            No Answer   Junk
+19 5000g000028b0akAAA             Delivery   Junk
+20 5000g000028b0KIAAY      Correction/Typo   Junk
+21 5000g000028b1CBAAY            No Answer   Junk
+22 5000g000028bCAvAAM            No Answer   Junk
+23 5000g000028bhAGAAY            Editorial   Junk
+24 5000g000028beUQAAY      Billing/Payment   Junk
+25 5000g000028bCTSAA2             Delivery   Junk
+26 5000g000028bUDdAAM  Feedback - Positive   Junk
+27 5000g000028bTVcAAM            Editorial   Junk
+28 5000g000028bBPDAA2            Editorial   Junk
+29 5000g000028bAs4AAE  Feedback - Positive   Junk
+30 5000g000028bKhTAAU            Editorial   Junk
+31 5000g000028bVODAA2 Account Modification   Junk
+32 5000g000028bUO2AAM            No Answer   Junk
+33 5000g000028bPSEAA2          Misdirected   Junk
+34 5000g000028bM6pAAE      Correction/Typo   Junk
+35 5000g000028bAssAAE      Billing/Payment   Junk
+36 5000g000028bJzbAAE          Misdirected   Junk
+37 5000g000028bAfZAAU          Misdirected   Junk
+38 5000g000028bRDVAA2          Misdirected   Junk
+39 5000g000028bAwBAAU          Misdirected   Junk
+40 5000g000028bUkIAAU            No Answer   Junk
+41 5000g000028bV4HAAU            No Answer   Junk
+42 5000g000028bNgcAAE          Misdirected   Junk
+43 5000g000028bAvSAAU  Feedback - Positive   Junk
+44 5000g000028bKSxAAM  Feedback - Positive   Junk
+45 5000g000028bO7jAAE     General Question   Junk
+46 5000g000028bAtbAAE           Newsletter   Junk
+47 5000g000028bB4FAAU           Suggestion   Junk
+48 5000g000028b8ibAAA  Feedback - Positive   Junk
+49 5000g000028bL2uAAE            No Answer   Junk
+50 5000g000028bd6UAAQ  Feedback - Negative   Junk
+51 5000g000028bAXpAAM  Feedback - Negative   Junk
+52 5000g000028bBMdAAM            No Answer   Junk
+53 5000g000028bXjRAAU            No Answer   Junk
+54 5000g000028bDDuAAM Account Modification   Junk
+55 5000g000028bW9qAAE      Correction/Typo   Junk
+56 5000g000028bMP6AAM  Feedback - Positive   Junk
+57 5000g000028bLikAAE          Unsubscribe   Junk
+58 5000g000028bfqIAAQ            No Answer   Junk
+59 5000g000028b3KgAAI     General Question   Junk
+60 5000g000028azCrAAI            Subscribe   Junk
+61 5000g000028b27sAAA            Technical   Junk
+> 
+                 
