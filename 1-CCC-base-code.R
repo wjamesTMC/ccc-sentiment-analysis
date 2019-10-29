@@ -134,7 +134,7 @@ cat("Reps identified", reps_log, "instances")
 cat("The program detected", prog_log, "instances")
 cat("There were", matches, "matches")
 cat("The program identified", (matches / reps_log) * 100, "% correctly")
-cat("The progrem identified", prog_log - matches, "incorrectly")
+cat("The program identified", prog_log - matches, "incorrectly")
 
 error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
 
@@ -308,32 +308,31 @@ res_df <- data.frame("Id" = 1:nrow(dat),
 # If a word does show up, mark it with a "1" and save off the result
 for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
-          dat$N_Type[i]  <- match_term
+          dat$N_Type[i] <- match_term
           dat$M_Count[i] <- 1
-          res_df[i, 1]   <- dat$Id[i]
-          res_df[i, 2]   <- dat$O_Type[i]
-          res_df[i, 3]   <- dat$N_Type[i]
+          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 2] <- dat$O_Type[i]
+          res_df[i, 3] <- dat$N_Type[i]
      }
 }
 
 # Distill the results down to where we do not have a match
-res_df <- res_df %>% filter(O_Type != N_Type)
-reps_count <- nrow(dat %>% filter(dat$O_Type == match_term))
-error_rate <- nrow(res_df) / reps_count
+reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
+prog_log <- nrow(res_df %>% filter(Id != N_Type))
+matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
+accuracy <- (matches / reps_log) * 100
 
 # Compute the percentage of correct matches out of the whole set
-cat("Reps identified", reps_count, "instances")
-cat("The program detected", sum(dat$M_Count), "instances")
-cat("There were", nrow(res_df), "differences - an accuracy rate of", (1 - error_rate) * 100,"%")
+cat("Reps identified", reps_log, "instances")
+cat("The program detected", prog_log, "instances")
+cat("There were", matches, "matches")
+cat("The program identified", (matches / reps_log) * 100, "% correctly")
+cat("The program identified", prog_log - matches, "incorrectly")
 
+error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
 
-tech_success <- tech_success %>% filter(match_value == 0)
-
-# Write out the correct matches to the output dataframe
-out_df <- rbind(out_df, dat %>% filter(dat$M_Count == 1))
-
-# Remove the matches from the working dataframe to begin the next sequence
-dat <- dat %>% filter(dat$M_Count != 1)
+# Clear out the correctly identified items
+dat <- dat %>% filter(dat$M_Count == 0)
 
 #
 # Detect emails where the category is  "Junk"
@@ -554,17 +553,23 @@ for(i in 1:nrow(dat)) {
 }
 
 # Distill the results down to where we do not have a match
-res_df <- res_df %>% filter(Id != O_Type) %>% filter(O_Type != N_Type)
-reps_count <- nrow(dat %>% filter(dat$O_Type == match_term))
-error_rate <- nrow(res_df) / reps_count
+reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
+prog_log <- nrow(res_df %>% filter(Id != N_Type))
+matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
+accuracy <- (matches / reps_log) * 100
 
 # Compute the percentage of correct matches out of the whole set
-cat("Reps identified", reps_count, "instances of Junk")
-cat("The program detected", sum(dat$M_Count), "instances of junk")
-cat("There were", nrow(res_df), "differences - an accuracy rate of", (1 - error_rate) * 100,"%")
+cat("Reps identified", reps_log, "instances")
+cat("The program detected", prog_log, "instances")
+cat("There were", matches, "matches")
+cat("The program identified", (matches / reps_log) * 100, "% correctly")
+cat("The program identified", prog_log - matches, "incorrectly")
 
-# Remove the matches from the working dataframe to begin the next sequence
+error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
+
+# Clear out the correctly identified items
 dat <- dat %>% filter(dat$M_Count == 0)
+
 
 #
 # Detect emails that reflect no answer
