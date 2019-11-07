@@ -1,0 +1,30 @@
+
+for (i in 1:3) {
+  print(ggplot2::qplot(i, i+1))
+  cat("\n\n\\pagebreak\n")
+  writeLines("ValueForV")
+}
+```
+
+
+for (i in 1:no_sd_staff) {
+     cat(">>>", sd_staff$Owner[i], "Total tickets:", nrow(sd_data_list[[i]]), "\n")
+     if(nrow(sd_data_list[[i]]) == 0) {
+          cat("No current tickets for", sd_staff$Owner[i])
+          cat("\n\\newpage\n")
+          break
+          }
+     knitr::kable(sd_data_list[[i]]) %>%
+          kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+     cat("\n\\newpage\n")
+}
+
+
+# Create a list to hold Service Desk Staff groupings
+sd_data_list   <- list()
+
+#Loop to generate groupings and populate the list
+for (i in 1:no_sd_staff) {
+     x <- owner_durs %>% filter(Owner == sd_staff$Owner[i])
+     sd_data_list[[i]] = data.frame(x)
+}
