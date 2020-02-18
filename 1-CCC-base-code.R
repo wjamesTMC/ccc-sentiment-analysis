@@ -46,8 +46,9 @@ library(googlesheets)
 #
 
 # Import and Open the data file / Establish the data set
-data_filename <- gs_title("Cases for Bill September 1 - October 5")
-dat <- gs_read(data_filename, stringsAsFactors = FALSE)
+# data_filename <- gs_title("Cases for Bill September 1 - October 5")
+data_filename <- gs_title("CCC 19 08 12-18 Altered")
+raw_dat <- gs_read(data_filename, stringsAsFactors = FALSE)
 
 # vocab_filename <- "0_Input_Vocabulary.csv"
 # comms          <- read.csv(vocab_filename, stringsAsFactors = FALSE)
@@ -60,14 +61,15 @@ dat <- gs_read(data_filename, stringsAsFactors = FALSE)
 #
 
 # Clean up the column names
-dat <- rename(dat, replace = c("Case ID" = "Id",
-                               "Products/Topics" = "Topic",
+dat <- as.data.frame(raw_dat)
+dat <- rename(dat, replace = c("Id" = "ID",
+                               "Products_Topics_CCC__c" = "Topic",
                                "Description" = "Desc",
                                "Type" = "O_Type"))
 
 # Eestablish a new type column to compare ability to predict rigth category
 dat<- dat %>% mutate(N_Type = "TBD", M_Count = 0) %>%
-     select(Id, Subject, Desc, Topic, O_Type, N_Type, M_Count)
+     select(ID, Subject, Desc, Topic, O_Type, N_Type, M_Count)
      
 # Establish a single category for various technical permutatioins
 dat[dat == "Technical/Access"]           <- "Technical"
@@ -86,19 +88,248 @@ dat <- dat %>% filter(O_Type != "Duplicate", O_Type != "")
 #
 #*******************************************************************************
 
+
+#
+# Detect emails where the category is Billing - Payments - Donations
+#
+
+match_term <- "Billing - Payments - Donations"
+
+# Determine how many are classified this way by the CCC staff
+act_result  <- dat %>% filter(dat$O_Type == match_term) 
+act_result  <- act_result %>% select(ID, O_Type)
+act_num     <- nrow(act_result)
+
+# Start the search for these items using specific vocabulary
+detect_BPD <- c("donation", "Donation")
+
+# Check each of the words against the Descriptions
+Pattern  <- paste(detect_BPD, collapse = "|")
+result   <- grepl(Pattern, dat$Desc)
+npr      <- grepl(Pattern, dat$Desc)
+prog_num <- length(npr[npr == TRUE])
+
+# Set up df to collect instances where we are identifying correctly
+res_df <- data.frame("ID"     = 1:nrow(dat),
+                     "O_Type" = 1:nrow(dat),
+                     "N_Type" = 1:nrow(dat))
+
+# If a word does show up, mark it with a "1" and save off the result
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$N_Type[i]  <- match_term
+          dat$M_Count[i] <- 1
+          res_df[i, 1]   <- dat$ID[i]
+          res_df[i, 2]   <- dat$O_Type[i]
+          res_df[i, 3]   <- dat$N_Type[i]
+     }
+}
+
+# List of what the program identified
+prog_result <- dat %>% filter(dat$M_Count == 1)
+nrpr <- nrow(prog_result)
+
+# Keep just the relevant data and delete other rows
+res_df      <- res_df %>% filter(ID != O_Type)
+Prob_items  <- anti_join(act_result, res_df) 
+nrow(Prob_items)
+
+comp_set <- act_result %>% select(ID)
+comp_set <- rbind(comp_set, res_df %>% select(ID))
+
+nrow(comp_set)
+
+# Write out the results (res_df)
+output_file <- gs_title("CCC BPD Match Results")
+gs_edit_cells(output_file, ws = 1, input = comp_set, anchor = "A1", byrow = FALSE,
+              col_names = NULL, trim = FALSE, verbose = TRUE)
+
+#
+# Detect emails where the category is  "Junk"
+#
+
+match_term <- "Junk or No Answer Required"
+
+act_result  <- dat %>% filter(dat$O_Type == match_term) 
+act_num     <- nrow(act_result)
+
+detect_junk <- c("@import",
+                 "@info",
+                 "5W PUBLIC RELATIONS",
+                 "amodelbuiltonfaith",
+                 "A new study",
+                 "acesse aqui",
+                 "ad budget",
+                 "Adquira Aqui",
+                 "Adword",
+                 "all guns",
+                 "Altcoin",
+                 "and HomeAway",
+                 "Auto-Estima",
+                 "aximize your",
+                 "Barrister",
+                 "Baston Elevate",
+                 "bigdeal",
+                 "Bomba",
+                 "BPO",
+                 "buy in",
+                 "CALMatters",
+                 "lique Aqui",
+                 "combined with other offers",
+                 "CONFERENCE",
+                 "constantcontact",
+                 "contributing factor of Alzheimer’s",
+                 "D&S Newsletter",
+                 "daily email notifications Message",
+                 "did not include any attached documents",
+                 "DocuSign",
+                 "egister Now",
+                 "egister now",
+                 "egister today",
+                 "Email: tw0910342479@yahoo.com",
+                 "equities market",
+                 "ESTIMULANTE",
+                 "Eversmile",
+                 "ew Video",
+                 "ew video",
+                 "Experimente Aqui",
+                 "exporter",
+                 "FINALMENTE",
+                 "f you don't want to receive these emails from Facebook",
+                 "finalmente",
+                 "first look at",
+                 "FOR IMMEDIATE RELEASE",
+                 "FREE CHUL",
+                 "globalmedia",
+                 "GoTranscript",
+                 "his offer",
+                 "IMPORTANT ANNOUNCEMENT",
+                 "I am Mr",
+                 "icrophones",
+                 "iew this email online",
+                 "implant",
+                 "lementary schools",
+                 "lick the play button",
+                 "lucky tickets",
+                 "luckytickets",
+                 "Macho Man",
+                 "my campaign",
+                 "NEW CAREER",
+                 "NOSSO VIDEO",
+                 "nosso video",
+                 "Nova Câmera Discreta",
+                 "ntensificador",
+                 "To view this email online",
+                 "to view this email online",
+                 "ou’re receiving this email because",
+                 "Para visualizá-lo on-line",
+                 "paste this link into your browser",
+                 "pgrade your mail",
+                 "pgrade Your Mailbox",
+                 "Politique",
+                 "Power Erect",
+                 "ptimization",
+                 "quickly promote",
+                 "review your purchase",
+                 "Ruslan Kolbaev",
+                 "sarasfarm2",
+                 "saving money fo",
+                 "Smith Publicity",
+                 "social media post",
+                 "stimulante",
+                 "The Nation Press Room",
+                 "TurfMutt",
+                 "Veja o Vídeo",
+                 "vent summary",
+                 "vent Summary",
+                 "Vipmail",
+                 "Vrbo",
+                 "WaterBrook",
+                 "webafrica",
+                 "Welcome back to work!",
+                 "WHO study",
+                 "xhibitor",
+                 "xperimente",
+                 "GrandPad",
+                 "iew this email in your browser",
+                 "nstagram",
+                 "ndustrial",
+                 "onstant Contact",
+                 "onstant contact",
+                 "today's topic summary",
+                 "sponsor",
+                 "RPO",
+                 "yo.utube",
+                 "View this email in your browser")
+
+# Check each of the words against the Descriptions
+Pattern = paste(detect_junk, collapse = "|")
+result <- grepl(Pattern, dat$Desc)
+
+# Set up df to collect instances where we are not identifying correctly
+res_df <- data.frame("ID"     = 1:nrow(dat),
+                     "O_Type" = 1:nrow(dat),
+                     "N_Type" = 1:nrow(dat),
+                     "Subj"   = 1:nrow(dat),
+                     "Desc"   = 1:nrow(dat))
+
+# If a word does show up, mark it with a "1" and save off the result
+for(i in 1:nrow(dat)) {
+     if(result[i] == TRUE) {
+          dat$N_Type[i]  <- match_term
+          dat$M_Count[i] <- 1
+          res_df[i, 1]   <- dat$ID[i]
+          res_df[i, 2]   <- dat$O_Type[i]
+          res_df[i, 3]   <- dat$N_Type[i]
+          res_df[i, 4]   <- dat$Subject[i]
+          res_df[i, 5]   <- dat$Desc[i]
+     }
+}
+
+res_df      <- res_df %>% filter(ID != O_Type)
+Prob_items  <- anti_join(act_result, res_df) 
+
+# Write out the results (res_df)
+output_file <- gs_title("CCC Junk Match Results")
+gs_edit_cells(output_file, ws = 1, input = Prob_items, anchor = "A1", byrow = FALSE,
+              col_names = NULL, trim = FALSE, verbose = TRUE)
+
+# Distill the results down to where we do not have a match
+prog_result <- res_df %>% filter(N_Type == match_term)
+prog_num    <- nrow(prog_result)
+prog_diff   <- prog_num - act_num
+
+matches     <- res_df %>% filter(O_Type == N_Type)
+match_num   <- nrow(matches)
+miss_log    <- dat %>% filter(O_Type == match_term & N_Type != match_term) %>% select(ID)
+miss_num    <- nrow(miss_log)
+
+accuracy    <- (match_num / act_num) * 100
+
+# Compute the percentage of correct matches out of the whole set
+cat("Reps identified", act_num, "instances")
+cat("The program detected", prog_num, "instances")
+cat("There were", match_num, "matches")
+cat("The program identified", (match_num / act_num) * 100, "% correctly")
+cat("The program missed", miss_num, "emails reps identified")
+cat("The program identified", prog_diff, "emails reps classified otherwise")
+
+error_log <- res_df %>% filter(ID != N_Type) %>% filter(O_Type != N_Type)
+
+# Clear out the correctly identified items
+dat <- dat %>% filter(dat$M_Count == 0)
+
 #
 # Detect emails that are just out of the office notices
 #
 
 match_term <- "Out of office"
 
-act_result  <- dat %>% filter(dat$O_Type == match_term)
+act_result  <- dat %>% filter(dat$O_Type == match_term) 
 act_num     <- nrow(act_result)
 
 # Vocabulary words to check
-detect_outofoffice <- c("out office",
-                        "out of office",
-                        "out of the office",
+detect_outofoffice <- c("out of the office",
                         "working remotely",
                         "vacation",
                         "away from the office",
@@ -109,15 +340,17 @@ detect_outofoffice <- c("out office",
                         "returning to the office",
                         "when I return",
                         "will respond",
-                        "GrandPad",
                         "offices will be closed")
+
+# GrandPad should signal Junk, not ooto
+# Reps identified 10 emails with "out of the office" as something else
 
 # Check each of the words against the Descriptions
 Pattern = paste(detect_outofoffice, collapse = "|")
 result <- grepl(Pattern, dat$Desc)
 
 # Set up df to collect instances where we are not identifying correctly
-res_df <- data.frame("Id"     = 1:nrow(dat),
+res_df <- data.frame("ID"     = 1:nrow(dat),
                      "O_Type" = 1:nrow(dat),
                      "N_Type" = 1:nrow(dat))
 
@@ -126,13 +359,14 @@ for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$N_Type[i]  <- match_term
           dat$M_Count[i] <- 1
-          res_df[i, 1]   <- dat$Id[i]
+          res_df[i, 1]   <- dat$ID[i]
           res_df[i, 2]   <- dat$O_Type[i]
           res_df[i, 3]   <- dat$N_Type[i]
      }
 }
 
-res_df <- res_df %>% filter(Id != O_Type)
+res_df      <- res_df %>% filter(ID != O_Type)
+Prob_items  <- anti_join(act_result, res_df) 
 
 # Distill the results down to where we do not have a match
 prog_result <- res_df %>% filter(N_Type == match_term)
@@ -141,9 +375,8 @@ prog_diff   <- prog_num - act_num
 
 matches     <- res_df %>% filter(O_Type == N_Type)
 match_num   <- nrow(matches)
-miss_log    <- dat %>% filter(O_Type == match_term & N_Type != match_term) %>% select(Id)
+miss_log    <- dat %>% filter(O_Type == match_term & N_Type != match_term) %>% select(ID)
 miss_num    <- nrow(miss_log)
-
 
 accuracy    <- (match_num / act_num) * 100
 
@@ -153,248 +386,14 @@ cat("The program detected", prog_num, "instances")
 cat("There were", match_num, "matches")
 cat("The program identified", (match_num / act_num) * 100, "% correctly")
 cat("The program missed", miss_num, "emails reps identified")
-cat("The program identified", prog_diff, "incorrectly")
+cat("The program identified", prog_diff, "emails reps classified otherwise")
 
-error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
-
-# Clear out the correctly identified items
-dat <- dat %>% filter(dat$M_Count == 0)
-
-#
-# Detect emails where the category is  "Junk"
-#
-
-match_term <- "Junk"
-
-# Vocabulary
-detect_junk <- c("5W PUBLIC RELATIONS",
-                 "Aqui",
-                 "DocuSign",
-                 "@info",
-                 "@import",
-                 "a new poll",
-                 "a new study",
-                 "A new study",
-                 "acesse aqui",
-                 "advertising",
-                 "ad budget",
-                 "Adword",
-                 "Adquira Aqui",
-                 "all guns",
-                 "Altcoin",
-                 "Amtrak",
-                 "an opinion I wrote",
-                 "an article I wrote",
-                 "and HomeAway",
-                 "announces",
-                 "ATTENTION",
-                 "Auto-Estima",
-                 "aximize your",
-                 "Barrister",
-                 "Baston Elevate",
-                 "bigdeal",
-                 "blog",
-                 "Bomba",
-                 "book series",
-                 "BPO",
-                 "buy in",
-                 "CALMatters",
-                 "CEO",
-                 "clergy",
-                 "click?",
-                 "Click here",
-                 "Clique Aqui",
-                 "clinical",
-                 "combined with other offers",
-                 "comedian",
-                 "company",
-                 "competitors",
-                 "CONFERENCE",
-                 "conference",
-                 "connect on LinkedIn",
-                 "content on my website",
-                 "constantcontact",
-                 "onstant Contact",
-                 "onstant contact",
-                 "consultant",
-                 "contest",
-                 "contributing factor of Alzheimer’s",
-                 "Corporate Office",
-                 "D&S Newsletter",
-                 "deadline",
-                 "Did you know",
-                 "domination",
-                 "donation",
-                 "earn how to",
-                 "egister Now",
-                 "egister now",
-                 "egister today",
-                 "Email: tw0910342479@yahoo.com",
-                 "email marketing",
-                 "empower",
-                 "Enews",
-                 "equities market",
-                 "ESTIMULANTE",
-                 "Eversmile",
-                 "ew Video",
-                 "ew video",
-                 "exporter",
-                 "exual",
-                 "Experimente Aqui",
-                 "f you don't want to receive these emails from Facebook",
-                 "factory",
-                 "FINALMENTE",
-                 "finalmente",
-                 "financial assistance",
-                 "first look at",
-                 "FOR IMMEDIATE RELEASE",
-                 "For immediate release",
-                 "FREE CHUL",
-                 "fuck",
-                 "globalmedia",
-                 "GoTranscript",
-                 "GrandPad",
-                 "hacker",
-                 "hipping method",
-                 "hipping Method",
-                 "his offer",
-                 "I am Mr",
-                 "icrophones",
-                 "iew this email in your browser",
-                 "iew this email online",
-                 "ilitary",
-                 "implant",
-                 "IMPORTANT ANNOUNCEMENT",
-                 "infectious diseases",
-                 "info@",
-                 "INSTAGRAM",
-                 "investment",
-                 "ISBN",
-                 "Join the conversation",
-                 "lementary schools",
-                 "licensed",
-                 "lick the play button",
-                 "linkedin.com",
-                 "lucky tickets",
-                 "luckytickets",
-                 "Macho Man",
-                 "manufacturer",
-                 "MD",
-                 "mission trips",
-                 "monster",
-                 "MONSTER",
-                 "my campaign",
-                 "NCIA",
-                 "ndustrial",
-                 "NEW CAREER",
-                 "new career",
-                 "newest products",
-                 "News Release",
-                 "NOSSO VIDEO",
-                 "nosso video",
-                 "Nova Câmera Discreta",
-                 "nstagram",
-                 "ntensificador",
-                 "o view it",
-                 "oday's topic summary",
-                 "online marketing",
-                 "ou’re receiving this email because",
-                 "opportunities",
-                 "Para visualizá-lo on-line",
-                 "paste this link into your browser:",
-                 "pgrade your mail",
-                 "pgrade Your Mailbox",
-                 "Politique",
-                 "ponsor",
-                 "Power Erect",
-                 "promo code",
-                 "psychologist",
-                 "ptimization",
-                 "quickly promote",
-                 "review your purchase",
-                 "rewarding job",
-                 "Ruslan Kolbaev",
-                 "RPO",
-                 "Sale",
-                 "sarasfarm2",
-                 "saving money fo",
-                 "eminar",
-                 "smear",
-                 "Smith Publicity",
-                 "stimulante",
-                 "5W PUBLIC RELATIONS,",
-                 "the content on my website",
-                 "The Nation Press Room",
-                 "therapy",
-                 "to view it",
-                 "o view this email online",
-                 "traffic",
-                 "Trump's",
-                 "ttendee",
-                 "TurfMutt",
-                 "Upcoming Events",
-                 "upcoming events",
-                 "update your preferences",
-                 "URGENT NEWS",
-                 "urgent news",
-                 "Veja o Vídeo",
-                 "vent summary",
-                 "vent Summary",
-                 "VICTIM",
-                 "victim",
-                 "Vipmail",
-                 "visit our website",
-                 "visiting our website",
-                 "Vrbo",
-                 "WaterBrook",
-                 "webafrica",
-                 "Welcome to your Daily",
-                 "white supremacy",
-                 "WHO study",
-                 "winning author",
-                 "xclusivo",
-                 "xhibitor",
-                 "xperimente",
-                 "your industry",
-                 "yo.utube")
-
-# Use Grep to check each of these terms against the Description field
-Pattern = paste(detect_junk, collapse = "|")
-result <- grepl(Pattern, dat$Description)
-
-# Set up df to collect instances where we are not identifying correctly
-res_df <- data.frame("Id" = 1:nrow(dat),
-                     "O_Type" = 1:nrow(dat),
-                     "N_Type" = 1:nrow(dat))
-
-# If a word does show up, mark it with a "1" and save off the result
-for(i in 1:nrow(dat)) {
-     if(result[i] == TRUE) {
-          dat$N_Type[i] <- match_term
-          dat$M_Count[i] <- 1
-          res_df[i, 1] <- dat$Id[i]
-          res_df[i, 2] <- dat$O_Type[i]
-          res_df[i, 3] <- dat$N_Type[i]
-     }
-}
-
-# Distill the results down to where we do not have a match
-reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
-prog_log <- nrow(res_df %>% filter(Id != N_Type))
-matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
-accuracy <- (matches / reps_log) * 100
-
-# Compute the percentage of correct matches out of the whole set
-cat("Reps identified", reps_log, "instances")
-cat("The program detected", prog_log, "instances")
-cat("There were", matches, "matches")
-cat("The program identified", (matches / reps_log) * 100, "% correctly")
-cat("The program identified", prog_log - matches, "incorrectly")
-
-error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
+error_log <- res_df %>% filter(ID != N_Type) %>% filter(O_Type != N_Type)
 
 # Clear out the correctly identified items
 dat <- dat %>% filter(dat$M_Count == 0)
+
+
 
 
 #
@@ -427,7 +426,7 @@ Pattern = paste(detect_delivery, collapse = "|")
 result <- grepl(Pattern, dat$Description)
 
 # Set up df to collect instances where we are not identifying correctly
-res_df <- data.frame("Id" = 1:nrow(dat),
+res_df <- data.frame("ID" = 1:nrow(dat),
                      "O_Type" = 1:nrow(dat),
                      "N_Type" = 1:nrow(dat))
 
@@ -436,7 +435,7 @@ for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$N_Type[i] <- match_term
           dat$M_Count[i] <- 1
-          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 1] <- dat$ID[i]
           res_df[i, 2] <- dat$O_Type[i]
           res_df[i, 3] <- dat$N_Type[i]
      }
@@ -444,8 +443,8 @@ for(i in 1:nrow(dat)) {
 
 # Distill the results down to where we do not have a match
 reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
-prog_log <- nrow(res_df %>% filter(Id != N_Type))
-matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
+prog_log <- nrow(res_df %>% filter(ID != N_Type))
+matches  <- nrow(res_df %>% filter(ID != O_Type) %>% filter(O_Type == N_Type))
 accuracy <- (matches / reps_log) * 100
 
 # Compute the percentage of correct matches out of the whole set
@@ -455,7 +454,7 @@ cat("There were", matches, "matches")
 cat("The program identified", (matches / reps_log) * 100, "% correctly")
 cat("The progrem identified", prog_log - matches, "incorrectly")
 
-error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
+error_log <- res_df %>% filter(ID != N_Type) %>% filter(O_Type != N_Type)
 
 # Clear out the correctly identified items
 dat <- dat %>% filter(dat$M_Count == 0)
@@ -557,7 +556,7 @@ Pattern = paste(detect_tech, collapse = "|")
 result <- grepl(Pattern, dat$Description)
 
 # Set up df to collect instances where we are not identifying correctly
-res_df <- data.frame("Id" = 1:nrow(dat),
+res_df <- data.frame("ID" = 1:nrow(dat),
                      "O_Type" = 1:nrow(dat),
                      "N_Type" = 1:nrow(dat))
 
@@ -566,7 +565,7 @@ for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$N_Type[i] <- match_term
           dat$M_Count[i] <- 1
-          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 1] <- dat$ID[i]
           res_df[i, 2] <- dat$O_Type[i]
           res_df[i, 3] <- dat$N_Type[i]
      }
@@ -578,8 +577,8 @@ for(i in 1:nrow(dat)) {
 
 # Distill the results down to where we do not have a match
 reps_log <- nrow(dat %>% filter(dat$O_Type == match_term))
-prog_log <- nrow(res_df %>% filter(Id != N_Type))
-matches  <- nrow(res_df %>% filter(Id != O_Type) %>% filter(O_Type == N_Type))
+prog_log <- nrow(res_df %>% filter(ID != N_Type))
+matches  <- nrow(res_df %>% filter(ID != O_Type) %>% filter(O_Type == N_Type))
 accuracy <- (matches / reps_log) * 100
 
 # Compute the percentage of correct matches out of the whole set
@@ -589,7 +588,7 @@ cat("There were", matches, "matches")
 cat("The program identified", (matches / reps_log) * 100, "% correctly")
 cat("The program identified", prog_log - matches, "incorrectly")
 
-error_log <- res_df %>% filter(Id != N_Type) %>% filter(O_Type != N_Type)
+error_log <- res_df %>% filter(ID != N_Type) %>% filter(O_Type != N_Type)
 
 # Clear out the correctly identified items
 dat <- dat %>% filter(dat$M_Count == 0)
@@ -617,7 +616,7 @@ Pattern = paste(detect_noanswer, collapse = "|")
 result <- grepl(Pattern, dat$Description)
 
 # Set up df to collect instances where we are not identifying correctly
-res_df <- data.frame("Id" = 1:nrow(dat),
+res_df <- data.frame("ID" = 1:nrow(dat),
                      "O_Type" = 1:nrow(dat),
                      "N_Type" = 1:nrow(dat))
 
@@ -626,14 +625,14 @@ for(i in 1:nrow(dat)) {
      if(result[i] == TRUE) {
           dat$N_Type[i] <- match_term
           dat$M_Count[i] <- 1
-          res_df[i, 1] <- dat$Id[i]
+          res_df[i, 1] <- dat$ID[i]
           res_df[i, 2] <- dat$O_Type[i]
           res_df[i, 3] <- dat$N_Type[i]
      }
 }
 
 # Distill the results down to where we do not have a match
-res_df <- res_df %>% filter(Id != O_Type) %>% filter(O_Type != N_Type)
+res_df <- res_df %>% filter(ID != O_Type) %>% filter(O_Type != N_Type)
 reps_count <- nrow(dat %>% filter(dat$O_Type == match_term))
 error_rate <- nrow(res_df) / reps_count
 
@@ -645,7 +644,7 @@ cat("There were", nrow(res_df), "differences - an accuracy rate of", (1 - error_
 
 # Collect all instances where the original classification = match term
 noa_success <- dat %>% filter(dat$O_Type == match_term) %>% 
-     select(Id, M_Count) %>% filter(M_Count == 0)
+     select(ID, M_Count) %>% filter(M_Count == 0)
 
 # Compare the number of identified lines with rep identified
 success <- sum(dat$M_Count) / nrow(noa_success)
@@ -678,7 +677,7 @@ cat("Success rate is:", success)
 
 # File name and then write out the out_df dataframe to the .csv file
 output_file <- "New.csv"
-out_df <- out_df %>% select(Id, O_Type, N_Type, M_Count, Description)
+out_df <- out_df %>% select(ID, O_Type, N_Type, M_Count, Description)
 write.csv(out_df, output_file)
 
 #######################
@@ -1048,7 +1047,7 @@ neu_df
 
 #--------------------------------------------------------------------
 #
-# Sentiment analysis - Identify descriptions with high negative rating
+# Sentiment analysis - IDentify descriptions with high negative rating
 # 
 #--------------------------------------------------------------------
 
@@ -1086,7 +1085,7 @@ for(i in 1:num_descs) {
           }
      }
      if(neg_word_count > neg_limit) {
-          neg_desc_df[df_counter, 1] <- dat$Id[i]
+          neg_desc_df[df_counter, 1] <- dat$ID[i]
           neg_desc_df[df_counter, 2] <- dat$Desc[i]
           neg_desc_df[df_counter, 3] <- neg_word_count
           df_counter <- df_counter + 1
