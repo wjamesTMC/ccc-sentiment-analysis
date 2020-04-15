@@ -1,0 +1,50 @@
+# Set up df to collect results
+res_df <- data.frame("ID"     = 1:nrow(e_dat),
+                     "C_Type" = 1:nrow(e_dat),
+                     "N_Type" = 1:nrow(e_dat),
+                     "Subj"   = 1:nrow(e_dat),
+                     "Desc"   = 1:nrow(e_dat))
+
+# If a word on our prediction list shows up, mark it with a "1" and save the result
+for(i in 1:nrow(e_dat)) {
+     if(any(v_junk %in% e_dat$Desc[i]))  {
+          e_dat$N_Type[i]  <- match_term
+          e_dat$M_Count[i] <- 1
+          res_df[i, 1]     <- e_dat$ID[i]
+          res_df[i, 2]     <- e_dat$C_Type[i]
+          res_df[i, 3]     <- e_dat$N_Type[i]
+          res_df[i, 4]     <- e_dat$Subj[i]
+          res_df[i, 5]     <- e_dat$Desc[i]
+     }
+}
+
+# Process the results 
+res_df      <- res_df %>% filter(ID != C_Type)
+prob_items  <- anti_join(act_result, res_df) 
+
+# Write out the results (res_df)
+output_file <- gs_title("CCC Junk Match Results")
+gs_edit_cells(output_file, ws = 1, input = prob_items, anchor = "A1", byrow = FALSE,
+              col_names = NULL, trim = FALSE, verbose = TRUE)
+
+# Distill the results down to where we do not have a match
+pred_result <- res_df %>% filter(N_Type == match_term)
+pred_num    <- nrow(pred_result)
+pred_diff   <- pred_num - act_num
+
+matches     <- res_df %>% filter(C_Type == N_Type)
+match_num   <- nrow(matches)
+miss_log    <- e_dat %>% filter(C_Type == match_term & N_Type != match_term) %>% select(ID)
+miss_num    <- nrow(miss_log)
+
+accuracy    <- (match_num / act_num) * 100
+
+# Compute the percentage of correct matches out of the whole set
+cat("Reps identified", act_num, "instances")
+cat("The program detected", pred_num, "instances")
+cat("There were", match_num, "matches")
+cat("The program identified", (match_num / act_num) * 100, "% correctly")
+cat("The program missed", miss_num, "emails reps identified")
+cat("The program identified", pred_diff, "emails reps classified otherwise")
+
+error_log <- res_df %>% filter(ID != N_Type) %>% filter(C_Type != N_Type)
